@@ -1,0 +1,126 @@
+version: "3.7"
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  go-app-network:
+    driver: bridge
+
+services:
+  db:
+    image: postgres:16.0
+    container_name: "for-9-may-database"
+    env_file:
+      - .env
+    networks:
+      - go-app-network
+    ports:
+      - $POSTGRES_PORT:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 1s
+      timeout: 1s
+      retries: 60
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine3.19
+    container_name: "for-9-may-redis"
+    networks:
+      - go-app-network
+    ports:
+      - $REDIS_PORT:6379
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis-data:/data
+
+  for-9-may-app1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: "for-9-may-app1"
+    env_file:
+      - .env
+    environment:
+      SERVER_PORT_HTTP: 8081
+      POSTGRES_HOST: db
+      REDIS_HOST: redis
+      POSTGRES_PORT: 5432
+      REDIS_PORT: 6379
+    ports:
+      - "8081:8081"
+    networks:
+      - go-app-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  for-9-may-app2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: "for-9-may-app2"
+    env_file:
+      - .env
+    environment:
+      SERVER_PORT_HTTP: 8082
+      POSTGRES_HOST: db
+      REDIS_HOST: redis
+      POSTGRES_PORT: 5432
+      REDIS_PORT: 6379
+    ports:
+      - "8082:8082"
+    networks:
+      - go-app-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  for-9-may-app3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: "for-9-may-app3"
+    env_file:
+      - .env
+    environment:
+      SERVER_PORT_HTTP: 8083
+      POSTGRES_HOST: db
+      REDIS_HOST: redis
+      POSTGRES_PORT: 5432
+      REDIS_PORT: 6379
+    ports:
+      - "8083:8083"
+    networks:
+      - go-app-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.27.4-alpine
+    container_name: "for-9-may-nginx"
+    ports:
+      - "8080:8080"
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - go-app-network
+    depends_on:
+      - for-9-may-app1
+      - for-9-may-app2
+      - for-9-may-app3

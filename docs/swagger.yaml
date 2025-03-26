@@ -1,0 +1,77 @@
+basePath: /api
+definitions:
+  models.ProfileLoginResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  web.ErrorResponse:
+    properties:
+      message:
+        $ref: '#/definitions/web.errorDetail'
+    type: object
+  web.errorDetail:
+    enum:
+    - authorisation error
+    - server error
+    - forbidden
+    type: string
+    x-enum-varnames:
+    - UnauthorizedError
+    - InternalServerError
+    - ForbiddenError
+info:
+  contact: {}
+  title: Polk Sirius
+  version: "1.0"
+paths:
+  /profile/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate admin with basic auth
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authorization OK
+          schema:
+            $ref: '#/definitions/models.ProfileLoginResponse'
+        "401":
+          description: Authorization error
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Login admin
+      tags:
+      - auth
+  /profile/refresh:
+    post:
+      description: Refresh access and refresh tokens for admin
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ProfileLoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      summary: Refresh admin tokens
+      tags:
+      - auth
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

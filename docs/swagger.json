@@ -1,0 +1,119 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Polk Sirius",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/api",
+    "paths": {
+        "/profile/login": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "Authenticate admin with basic auth",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login admin",
+                "responses": {
+                    "200": {
+                        "description": "Authorization OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProfileLoginResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Authorization error",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/refresh": {
+            "post": {
+                "description": "Refresh access and refresh tokens for admin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Refresh admin tokens",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProfileLoginResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.ProfileLoginResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/web.errorDetail"
+                }
+            }
+        },
+        "web.errorDetail": {
+            "type": "string",
+            "enum": [
+                "authorisation error",
+                "server error",
+                "forbidden"
+            ],
+            "x-enum-varnames": [
+                "UnauthorizedError",
+                "InternalServerError",
+                "ForbiddenError"
+            ]
+        }
+    },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        }
+    }
+}
