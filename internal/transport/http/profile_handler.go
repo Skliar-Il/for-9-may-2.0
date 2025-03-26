@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	generateTokenError = "generate token error: %v"
+	errorGenerateTokenString = "generate token error: %v"
 )
 
 type ProfileController struct {
@@ -47,20 +47,25 @@ func (p *ProfileController) LoginAdmin(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{Message: web.InvalidBasicAuthForm})
 		return
 	}
+
 	if username == p.AdminCfg.Login && password == p.AdminCfg.Password {
+		localLogger.Info(c, "generate tokens")
+
 		refreshToken, err := p.ServiceJWT.Encode(p.ServiceJWT.GetClaims(username, jwtservice.RefreshToken))
 		if err != nil {
-			localLogger.Error(c, fmt.Sprintf(generateTokenError, err))
+			localLogger.Error(c, fmt.Sprintf(errorGenerateTokenString, err))
 			c.AbortWithStatusJSON(http.StatusInternalServerError, web.ErrorResponse{Message: web.InternalServerError})
 			return
 		}
 
 		accessToken, err := p.ServiceJWT.Encode(p.ServiceJWT.GetClaims(username, jwtservice.AccessToken))
 		if err != nil {
-			localLogger.Error(c, fmt.Sprintf(generateTokenError, err))
+			localLogger.Error(c, fmt.Sprintf(errorGenerateTokenString, err))
 			c.AbortWithStatusJSON(http.StatusInternalServerError, web.ErrorResponse{Message: web.InternalServerError})
 			return
 		}
+
+		localLogger.Info(c, "push tokens in cookie")
 
 		p.ServiceJWT.SetCookieRefresh(c, refreshToken)
 		c.SetSameSite(http.SameSiteStrictMode)
@@ -99,6 +104,8 @@ func (p *ProfileController) RefreshAdmin(c *gin.Context) {
 		}
 	}
 
+	localLogger.Info(c, "decode token")
+
 	tokenClaims, err := p.ServiceJWT.DecodeKey(token)
 	if err != nil {
 		if errors.Is(jwtservice.InvalidTokenError, err) {
@@ -112,25 +119,31 @@ func (p *ProfileController) RefreshAdmin(c *gin.Context) {
 		}
 	}
 
+	localLogger.Info(c, "validate user")
+
 	if tokenClaims.Subject != p.AdminCfg.Login {
 		localLogger.Error(c, "invalid user")
 		c.AbortWithStatusJSON(http.StatusForbidden, web.ErrorResponse{Message: web.InvalidSubjectError})
 		return
 	}
 
+	localLogger.Info(c, "generate tokens")
+
 	refreshToken, err := p.ServiceJWT.Encode(p.ServiceJWT.GetClaims(tokenClaims.Subject, jwtservice.RefreshToken))
 	if err != nil {
-		localLogger.Error(c, fmt.Sprintf(generateTokenError, err))
+		localLogger.Error(c, fmt.Sprintf(errorGenerateTokenString, err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.ErrorResponse{Message: web.InternalServerError})
 		return
 	}
 
 	accessToken, err := p.ServiceJWT.Encode(p.ServiceJWT.GetClaims(tokenClaims.Subject, jwtservice.AccessToken))
 	if err != nil {
-		localLogger.Error(c, fmt.Sprintf(generateTokenError, err))
+		localLogger.Error(c, fmt.Sprintf(errorGenerateTokenString, err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.ErrorResponse{Message: web.InternalServerError})
 		return
 	}
+
+	localLogger.Info(c, "push tokens in cookie")
 
 	p.ServiceJWT.SetCookieRefresh(c, refreshToken)
 	c.SetSameSite(http.SameSiteStrictMode)
