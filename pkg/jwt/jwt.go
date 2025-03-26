@@ -12,7 +12,10 @@ const (
 	InvalidTokenStringError = "token is invalid"
 )
 
-var UndefinedTokenError = fmt.Errorf("undefined token")
+var (
+	UndefinedTokenError = fmt.Errorf("undefined token")
+	InvalidTokenError   = fmt.Errorf(InvalidTokenStringError)
+)
 
 type ServiceJWT struct {
 	privetKey      *rsa.PrivateKey
@@ -59,7 +62,7 @@ func (j *ServiceJWT) DecodeKey(tokenString string) (*jwt.RegisteredClaims, error
 		return claims, nil
 	}
 
-	return nil, fmt.Errorf(InvalidTokenStringError)
+	return nil, InvalidTokenError
 }
 
 func (j *ServiceJWT) SetCookieRefresh(c *gin.Context, token string) {

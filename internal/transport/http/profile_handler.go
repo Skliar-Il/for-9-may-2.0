@@ -9,7 +9,6 @@ import (
 	"for9may/pkg/logger"
 	"for9may/resources/web"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 )
 
@@ -40,31 +39,37 @@ func NewProfileHandler(serviceJwt *jwtservice.ServiceJWT, adminCfg config.AdminC
 // @Failure 401 {object} web.ErrorResponse "Authorization error"
 // @Router /profile/login [post]
 func (p *ProfileController) LoginAdmin(c *gin.Context) {
+	localLogger := logger.GetLoggerFromCtx(c)
+
 	username, password, ok := c.Request.BasicAuth()
 	if !ok {
-		logger.GetLoggerFromCtx(c).Error(c, "invalid format BasicAuth")
-		c.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{Message: web.UnauthorizedError})
+		localLogger.Error(c, "invalid format BasicAuth")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{Message: web.InvalidBasicAuthForm})
+		return
 	}
 	if username == p.AdminCfg.Login && password == p.AdminCfg.Password {
 		refreshToken, err := p.ServiceJWT.Encode(p.ServiceJWT.GetClaims(username, jwtservice.RefreshToken))
 		if err != nil {
-			logger.GetLoggerFromCtx(c).Error(c, fmt.Sprintf(generateTokenError, err))
+			localLogger.Error(c, fmt.Sprintf(generateTokenError, err))
 			c.AbortWithStatusJSON(http.StatusInternalServerError, web.ErrorResponse{Message: web.InternalServerError})
+			return
 		}
+
 		accessToken, err := p.ServiceJWT.Encode(p.ServiceJWT.GetClaims(username, jwtservice.AccessToken))
 		if err != nil {
-			logger.GetLoggerFromCtx(c).Error(c, fmt.Sprintf(generateTokenError, err))
+			localLogger.Error(c, fmt.Sprintf(generateTokenError, err))
 			c.AbortWithStatusJSON(http.StatusInternalServerError, web.ErrorResponse{Message: web.InternalServerError})
+			return
 		}
 
 		p.ServiceJWT.SetCookieRefresh(c, refreshToken)
 		c.SetSameSite(http.SameSiteStrictMode)
-
 		p.ServiceJWT.SetCookieAccess(c, accessToken)
 
 		c.JSON(http.StatusOK, models.ProfileLoginResponse{Message: accessToken})
 	} else {
-		c.JSON(http.StatusUnauthorized, web.ErrorResponse{Message: web.UnauthorizedError})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{Message: web.InvalidLoginPassword})
+		return
 	}
 }
 
@@ -79,39 +84,52 @@ func (p *ProfileController) LoginAdmin(c *gin.Context) {
 // @Failure 403 {object} web.ErrorResponse
 // @Failure 500 {object} web.ErrorResponse
 func (p *ProfileController) RefreshAdmin(c *gin.Context) {
+	localLogger := logger.GetLoggerFromCtx(c)
+
 	token, err := c.Cookie(jwtservice.RefreshTokenCookieName)
 	if err != nil {
 		if errors.Is(jwtservice.UndefinedTokenError, err) || errors.Is(http.ErrNoCookie, err) {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{Message: web.UnauthorizedError})
+			localLogger.Error(c, "token is nil")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{Message: web.TokenExpectedError})
 			return
 		} else {
-			logger.GetLoggerFromCtx(c).Error(c, fmt.Sprintf("get token error: %v", err))
+			localLogger.Error(c, fmt.Sprintf("get token error: %v", err))
 			c.AbortWithStatusJSON(http.StatusInternalServerError, web.ErrorResponse{Message: web.InternalServerError})
 			return
 		}
 	}
 
 	tokenClaims, err := p.ServiceJWT.DecodeKey(token)
-	if errors.Is(jwt.ErrInvalidKey, err) {
-		fmt.Printf("invalid key")
-	} else {
-		fmt.Printf("penis")
+	if err != nil {
+		if errors.Is(jwtservice.InvalidTokenError, err) {
+			localLogger.Error(c, fmt.Sprintf("invalid claims: %v", err))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{Message: web.TokenInvalidError})
+			return
+		} else {
+			localLogger.Error(c, fmt.Sprintf("failed get claims: %v", err))
+			c.AbortWithStatusJSON(http.StatusBadRequest, web.ErrorResponse{Message: web.InternalServerError})
+			return
+		}
 	}
 
 	if tokenClaims.Subject != p.AdminCfg.Login {
-		c.AbortWithStatusJSON(http.StatusForbidden, web.ErrorResponse{Message: web.ForbiddenError})
+		localLogger.Error(c, "invalid user")
+		c.AbortWithStatusJSON(http.StatusForbidden, web.ErrorResponse{Message: web.InvalidSubjectError})
+		return
 	}
 
 	refreshToken, err := p.ServiceJWT.Encode(p.ServiceJWT.GetClaims(tokenClaims.Subject, jwtservice.RefreshToken))
 	if err != nil {
-		logger.GetLoggerFromCtx(c).Error(c, fmt.Sprintf(generateTokenError, err))
+		localLogger.Error(c, fmt.Sprintf(generateTokenError, err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.ErrorResponse{Message: web.InternalServerError})
+		return
 	}
 
 	accessToken, err := p.ServiceJWT.Encode(p.ServiceJWT.GetClaims(tokenClaims.Subject, jwtservice.AccessToken))
 	if err != nil {
-		logger.GetLoggerFromCtx(c).Error(c, fmt.Sprintf(generateTokenError, err))
+		localLogger.Error(c, fmt.Sprintf(generateTokenError, err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.ErrorResponse{Message: web.InternalServerError})
+		return
 	}
 
 	p.ServiceJWT.SetCookieRefresh(c, refreshToken)
