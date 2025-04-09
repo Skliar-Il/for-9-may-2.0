@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS person (
     date_birth int,
     city_birth text,
     history text NOT NULL,
-    rank text   NOT NULL
+    rank text NOT NULL,
+    UNIQUE (name, surname, COALESCE(patronymic, ''))
 );
 
 CREATE TABLE IF NOT EXISTS form (

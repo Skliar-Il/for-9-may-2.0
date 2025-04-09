@@ -14,7 +14,9 @@ import (
 )
 
 func Define(engine *gin.Engine, cfg *config.Config, serviceJwt *jwtservice.ServiceJWT, dbPool *pgxpool.Pool) {
-	engine.Use(logger.Middleware())
+	mainLogger := logger.New()
+
+	engine.Use(logger.Middleware(mainLogger))
 	engine.Use(gin.Recovery())
 
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -23,10 +25,18 @@ func Define(engine *gin.Engine, cfg *config.Config, serviceJwt *jwtservice.Servi
 
 	personRepository := repository.NewPersonRepository()
 	medalRepository := repository.NewMedalRepository()
+	formRepository := repository.NewFormRepository()
+	ownerRepository := repository.NewOwnerRepository()
 
-	personService := service.NewPersonService(dbPool, personRepository, medalRepository)
+	personService := service.NewPersonService(
+		dbPool,
+		personRepository,
+		medalRepository,
+		formRepository,
+		ownerRepository,
+	)
 
-	personController := NewPersonHandler(personService)
+	personController := NewPersonHandler(personService, serviceJwt)
 	profileController := NewProfileHandler(serviceJwt, cfg.Admin)
 
 	profileGroup := api.Group("/profile")

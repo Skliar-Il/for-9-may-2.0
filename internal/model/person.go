@@ -12,7 +12,7 @@ type CreatePersonModel struct {
 	Role              bool   `json:"role" binding:"required"`
 	ContactEmail      string `json:"contact_email" binding:"required"`
 	ContactName       string `json:"contact_name" binding:"required"`
-	ContactSerName    string `json:"contact_surname" binding:"required"`
+	ContactSurname    string `json:"contact_surname" binding:"required"`
 	ContactPatronymic string `json:"contact_patronymic" binding:"required"`
 	ContactTelegram   string `json:"contact_telegram" binding:"required"`
 	Medals            []int  `json:"medals" binding:"required"`

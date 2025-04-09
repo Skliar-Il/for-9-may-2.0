@@ -32,7 +32,7 @@ func (m MedalRepository) CheckMedals(ctx context.Context, tx pgx.Tx, medals []in
 
 func (m MedalRepository) CreateMedalPerson(ctx context.Context, tx pgx.Tx, userID *uuid.UUID, medals []int) error {
 	query := `
-		INSERT INTO medal_person(person_id, medalID)
+		INSERT INTO medal_person(person_id, medal_id)
 		VALUES ($1, $2)`
 
 	for _, medalID := range medals {

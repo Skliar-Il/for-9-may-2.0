@@ -3,6 +3,7 @@ package logger
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,26 +21,19 @@ type Logger struct {
 	l *zap.Logger
 }
 
-func New(ctx context.Context) error {
+func New() *Logger {
 	logger, err := zap.NewProduction()
 	if err != nil {
-		return err
+		panic(err)
 	}
-
-	if ctx.Value(RequestId) == nil {
-		ctx = context.WithValue(ctx, RequestId, uuid.New().String())
-	}
-
-	ctx = context.WithValue(ctx, lKey, &Logger{logger})
-	return nil
+	return &Logger{l: logger}
 }
 
-func GetLoggerFromCtx(ctx context.Context) *Logger {
-	logger, exist := ctx.Value(lKey).(*Logger)
-	if !exist {
-		return nil
+func GetLoggerFromCtx(ctx *gin.Context) *Logger {
+	if logger, exists := ctx.Get(string(lKey)); exists {
+		return logger.(*Logger)
 	}
-	return logger
+	return nil
 }
 
 func (l *Logger) Info(ctx context.Context, msg string, fields ...zap.Field) {
@@ -62,27 +56,32 @@ func (l *Logger) Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 	}
 	l.l.Fatal(msg, fields...)
 }
-
-func Middleware() gin.HandlerFunc {
+func Middleware(logger *Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		if strings.HasPrefix(ctx.Request.URL.Path, "/swagger/") {
+			ctx.Next()
+			return
+		}
+
 		guid := uuid.New().String()
 		ctx.Set(string(RequestId), guid)
 
-		if GetLoggerFromCtx(ctx) == nil {
-			_ = New(ctx)
-		}
-		GetLoggerFromCtx(ctx).Info(ctx,
+		ctx.Set(string(lKey), logger)
+
+		logger.Info(ctx,
 			"Request http",
 			zap.String("method", ctx.Request.Method),
+			zap.String("path", ctx.Request.URL.Path),
 		)
 
 		timeStart := time.Now()
 		ctx.Next()
 		duration := time.Since(timeStart)
 
-		GetLoggerFromCtx(ctx).Info(ctx,
+		logger.Info(ctx,
 			"Response http",
 			zap.Duration("duration", duration),
+			zap.Int("status", ctx.Writer.Status()),
 		)
 	}
 }

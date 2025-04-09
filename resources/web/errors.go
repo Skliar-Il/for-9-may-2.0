@@ -53,3 +53,10 @@ type BadRequestError struct {
 func (BadRequestError) Error() string {
 	return "bad request error"
 }
+
+type UnAuthorizedError struct {
+}
+
+func (UnAuthorizedError) Error() string {
+	return "unauthorized error"
+}
