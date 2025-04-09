@@ -13,7 +13,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func Define(engine *gin.Engine, cfg *config.Config, serviceJwt *jwtservice.ServiceJWT, dbPool *pgxpool.Pool) {
+func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.ServiceJWT, dbPool *pgxpool.Pool) {
 	mainLogger := logger.New()
 
 	engine.Use(logger.Middleware(mainLogger))
@@ -35,9 +35,11 @@ func Define(engine *gin.Engine, cfg *config.Config, serviceJwt *jwtservice.Servi
 		formRepository,
 		ownerRepository,
 	)
+	profileService := service.NewProfileService(cfg.Admin, jwtService)
 
-	personController := NewPersonHandler(personService, serviceJwt)
-	profileController := NewProfileHandler(serviceJwt, cfg.Admin)
+	personController := NewPersonHandler(personService, profileService, jwtService)
+	profileController := NewProfileHandler(jwtService, cfg.Admin)
+	medalController := NewMedalHandler()
 
 	profileGroup := api.Group("/profile")
 	{
@@ -48,5 +50,15 @@ func Define(engine *gin.Engine, cfg *config.Config, serviceJwt *jwtservice.Servi
 	personGroup := api.Group("/person")
 	{
 		personGroup.POST("/create", personController.NewPerson)
+		personGroup.GET("", personController.GetPersonList)
+		personGroup.PATCH("/validate/:id", personController.ValidatePerson)
+		personGroup.DELETE("/:id", personController.DeletePerson)
+		personGroup.GET("/:id", personController.GetPerson)
+		personGroup.PUT("", personController.UpdatePerson)
+	}
+
+	medalGroup := api.Group("/medal")
+	{
+		medalGroup.POST("/create", medalController.CreateMedal)
 	}
 }

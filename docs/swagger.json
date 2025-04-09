@@ -7,6 +7,79 @@
     },
     "basePath": "/api",
     "paths": {
+        "/medal/create": {
+            "post": {
+                "tags": [
+                    "Medal"
+                ],
+                "parameters": [
+                    {
+                        "description": "Create medal",
+                        "name": "medal",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateMedalModel"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/person": {
+            "get": {
+                "description": "Retrieve person data with optional status check",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Person"
+                ],
+                "summary": "Get person information list",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Status check flag",
+                        "name": "check",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/model.PersonModel"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/web.BadRequestError"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/web.InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/person/create": {
             "post": {
                 "tags": [
@@ -26,6 +99,198 @@
                 "responses": {
                     "201": {
                         "description": "Created"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    }
+                }
+            }
+        },
+        "/person/validate/{id}": {
+            "patch": {
+                "description": "status switch status check on true",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Person"
+                ],
+                "summary": "Validate person",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/web.BadRequestError"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/web.InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/person/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves complete information about a person by their ID, including medal awards",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Person"
+                ],
+                "summary": "Get person details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Person's unique identifier (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved person data",
+                        "schema": {
+                            "$ref": "#/definitions/model.PersonModel"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Person not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Person"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/persons/{id}": {
+            "put": {
+                "description": "Updates existing person's data by ID with provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Person"
+                ],
+                "summary": "Update person information",
+                "parameters": [
+                    {
+                        "description": "Person data to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.PersonModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content (successful update with no response body)"
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/web.ValidationError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Person not found"
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/web.ValidationError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
@@ -104,6 +369,14 @@
         }
     },
     "definitions": {
+        "model.CreateMedalModel": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "model.CreatePersonModel": {
             "type": "object",
             "required": [
@@ -175,7 +448,85 @@
                 }
             }
         },
+        "model.MedalModel": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.PersonModel": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "contact_email": {
+                    "type": "string"
+                },
+                "contact_name": {
+                    "type": "string"
+                },
+                "contact_patronymic": {
+                    "type": "string"
+                },
+                "contact_surname": {
+                    "type": "string"
+                },
+                "contact_telegram": {
+                    "type": "string"
+                },
+                "date_birth": {
+                    "type": "integer"
+                },
+                "date_death": {
+                    "type": "integer"
+                },
+                "history": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "medals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.MedalModel"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "patronymic": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "relative": {
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                }
+            }
+        },
         "model.ProfileLoginResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.BadRequestError": {
             "type": "object",
             "properties": {
                 "message": {
@@ -186,32 +537,19 @@
         "web.ErrorResponse": {
             "type": "object",
             "properties": {
-                "error": {},
-                "message": {
-                    "$ref": "#/definitions/web.errorDetail"
-                }
+                "message": {}
             }
         },
-        "web.errorDetail": {
-            "type": "string",
-            "enum": [
-                "server error",
-                "token expected",
-                "invalid token",
-                "invalid subject",
-                "invalid basic auth form",
-                "invalid login or password",
-                "validation error"
-            ],
-            "x-enum-varnames": [
-                "InternalServerError",
-                "TokenExpectedError",
-                "TokenInvalidError",
-                "InvalidSubjectError",
-                "InvalidBasicAuthForm",
-                "InvalidLoginPassword",
-                "InvalidRequestValidate"
-            ]
+        "web.InternalServerError": {
+            "type": "object"
+        },
+        "web.ValidationError": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {

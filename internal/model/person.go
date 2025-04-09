@@ -18,3 +18,22 @@ type CreatePersonModel struct {
 	Medals            []int  `json:"medals" binding:"required"`
 	Relative          string `json:"relative" binding:"required"`
 }
+
+type PersonModel struct {
+	ID                string       `json:"id"`
+	Name              string       `json:"name"`
+	Surname           string       `json:"surname"`
+	Patronymic        string       `json:"patronymic"`
+	DateBirth         int          `json:"date_birth"`
+	DateDeath         int          `json:"date_death"`
+	City              string       `json:"city"`
+	History           string       `json:"history"`
+	Rank              string       `json:"rank"`
+	ContactEmail      string       `json:"contact_email"`
+	ContactName       string       `json:"contact_name"`
+	ContactSurname    string       `json:"contact_surname"`
+	ContactPatronymic string       `json:"contact_patronymic"`
+	ContactTelegram   string       `json:"contact_telegram"`
+	Medals            []MedalModel `json:"medals"`
+	Relative          string       `json:"relative"`
+}

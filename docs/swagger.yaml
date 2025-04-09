@@ -1,5 +1,10 @@
 basePath: /api
 definitions:
+  model.CreateMedalModel:
+    properties:
+      name:
+        type: string
+    type: object
   model.CreatePersonModel:
     properties:
       city:
@@ -51,40 +56,185 @@ definitions:
     - role
     - surname
     type: object
+  model.MedalModel:
+    properties:
+      id:
+        type: integer
+      image_url:
+        type: string
+      name:
+        type: string
+    type: object
+  model.PersonModel:
+    properties:
+      city:
+        type: string
+      contact_email:
+        type: string
+      contact_name:
+        type: string
+      contact_patronymic:
+        type: string
+      contact_surname:
+        type: string
+      contact_telegram:
+        type: string
+      date_birth:
+        type: integer
+      date_death:
+        type: integer
+      history:
+        type: string
+      id:
+        type: string
+      medals:
+        items:
+          $ref: '#/definitions/model.MedalModel'
+        type: array
+      name:
+        type: string
+      patronymic:
+        type: string
+      rank:
+        type: string
+      relative:
+        type: string
+      surname:
+        type: string
+    type: object
   model.ProfileLoginResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  web.BadRequestError:
     properties:
       message:
         type: string
     type: object
   web.ErrorResponse:
     properties:
-      error: {}
-      message:
-        $ref: '#/definitions/web.errorDetail'
+      message: {}
     type: object
-  web.errorDetail:
-    enum:
-    - server error
-    - token expected
-    - invalid token
-    - invalid subject
-    - invalid basic auth form
-    - invalid login or password
-    - validation error
-    type: string
-    x-enum-varnames:
-    - InternalServerError
-    - TokenExpectedError
-    - TokenInvalidError
-    - InvalidSubjectError
-    - InvalidBasicAuthForm
-    - InvalidLoginPassword
-    - InvalidRequestValidate
+  web.InternalServerError:
+    type: object
+  web.ValidationError:
+    properties:
+      message:
+        type: string
+    type: object
 info:
   contact: {}
   title: Polk Sirius
   version: "1.0"
 paths:
+  /medal/create:
+    post:
+      parameters:
+      - description: Create medal
+        in: body
+        name: medal
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateMedalModel'
+      responses: {}
+      tags:
+      - Medal
+  /person:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve person data with optional status check
+      parameters:
+      - default: true
+        description: Status check flag
+        in: query
+        name: check
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/model.PersonModel'
+              type: array
+            type: array
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/web.BadRequestError'
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/web.InternalServerError'
+      summary: Get person information list
+      tags:
+      - Person
+  /person/{id}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      tags:
+      - Person
+    get:
+      consumes:
+      - application/json
+      description: Retrieves complete information about a person by their ID, including
+        medal awards
+      parameters:
+      - description: Person's unique identifier (UUID)
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved person data
+          schema:
+            $ref: '#/definitions/model.PersonModel'
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Person not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get person details
+      tags:
+      - Person
   /person/create:
     post:
       parameters:
@@ -97,6 +247,73 @@ paths:
       responses:
         "201":
           description: Created
+        "422":
+          description: Unprocessable Entity
+      tags:
+      - Person
+  /person/validate/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: status switch status check on true
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/web.BadRequestError'
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/web.InternalServerError'
+      summary: Validate person
+      tags:
+      - Person
+  /persons/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates existing person's data by ID with provided information
+      parameters:
+      - description: Person data to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.PersonModel'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content (successful update with no response body)
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/web.ValidationError'
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Person not found
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/web.ValidationError'
+        "500":
+          description: Internal server error
+      summary: Update person information
       tags:
       - Person
   /profile/login:

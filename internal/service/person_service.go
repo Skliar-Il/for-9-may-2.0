@@ -95,6 +95,41 @@ func (p *PersonService) CreatePeron(ctx *gin.Context, person *model.CreatePerson
 	return personUUID, nil
 }
 
-func (p *PersonService) GetPerson(ctx *gin.Context, check bool) {
+func (p *PersonService) GetPerson(ctx *gin.Context, check bool) ([]model.PersonModel, error) {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := p.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "begin tx error: ", zap.Error(err))
+		return nil, web.InternalServerError{}
+	}
+	defer database.RollbackTx(ctx, tx, localLogger)
 
+	persons, err := p.PersonRepository.GetPerson(ctx, tx, check)
+	if err != nil {
+		localLogger.Error(ctx, "get person error", zap.Error(err))
+		return nil, web.InternalServerError{}
+	}
+	return persons, nil
+}
+
+func (p *PersonService) Validate(ctx *gin.Context, id uuid.UUID) error {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := p.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "start tx error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	defer database.RollbackTx(ctx, tx, localLogger)
+
+	err = p.PersonRepository.Validate(ctx, tx, id)
+	if err != nil {
+		localLogger.Error(ctx, "database error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		localLogger.Error(ctx, "commit error: ", zap.Error(err))
+		return web.InternalServerError{}
+	}
+
+	return nil
 }
