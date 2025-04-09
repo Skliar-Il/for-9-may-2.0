@@ -1,10 +1,12 @@
 package container
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"for9may/internal/config"
 	httpserver "for9may/internal/transport/http"
+	"for9may/pkg/database"
 	jwtservice "for9may/pkg/jwt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -14,17 +16,19 @@ import (
 )
 
 const (
-	startServerError    = "failed start server: %v"
-	getConfigError      = "failed get config: %v"
-	loadPrivateKeyError = "failed load privet key: %v"
+	startServerErrorString    = "failed start server: %v"
+	getConfigErrorString      = "failed get config: %v"
+	loadPrivateKeyErrorString = "failed load privet key: %v"
+	startDataBaseErrorString  = "failed start database: %v"
 )
 
 // NewApp
 // @title polk sirius
 func NewApp() *http.Server {
+	ctx := context.Background()
 	cfg, err := config.New()
 	if err != nil {
-		log.Fatalf(getConfigError, err)
+		log.Fatalf(getConfigErrorString, err)
 	}
 	serverEngine := gin.Default()
 
@@ -49,19 +53,24 @@ func NewApp() *http.Server {
 
 	privetKey, err := jwtservice.LoadPrivateKey("./certs/private.pem")
 	if err != nil {
-		log.Fatalf(loadPrivateKeyError, err)
+		log.Fatalf(loadPrivateKeyErrorString, err)
 	}
 	publicKey, err := jwtservice.LoadPublicKey("./certs/public.pem")
 	if err != nil {
-		log.Fatalf(loadPrivateKeyError, err)
+		log.Fatalf(loadPrivateKeyErrorString, err)
 	}
 	serviceJwt := jwtservice.NewServiceJWT(privetKey, publicKey, time.Hour*4, time.Minute*15)
 
-	httpserver.Define(serverEngine, cfg, serviceJwt)
+	dbPool, err := database.New(ctx, cfg.DataBase)
+	if err != nil {
+		log.Fatalf(startDataBaseErrorString, err)
+	}
+
+	httpserver.Define(serverEngine, cfg, serviceJwt, dbPool)
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf(startServerError, err)
+			log.Fatalf(startServerErrorString, err)
 		}
 	}()
 

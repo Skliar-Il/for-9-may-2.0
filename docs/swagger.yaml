@@ -1,30 +1,104 @@
 basePath: /api
 definitions:
-  models.ProfileLoginResponse:
+  model.CreatePersonModel:
+    properties:
+      city:
+        type: string
+      contact_email:
+        type: string
+      contact_name:
+        type: string
+      contact_patronymic:
+        type: string
+      contact_surname:
+        type: string
+      contact_telegram:
+        type: string
+      date_birth:
+        type: integer
+      date_death:
+        type: integer
+      history:
+        type: string
+      medals:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      patronymic:
+        type: string
+      rank:
+        type: string
+      relative:
+        type: string
+      role:
+        type: boolean
+      surname:
+        type: string
+    required:
+    - contact_email
+    - contact_name
+    - contact_patronymic
+    - contact_surname
+    - contact_telegram
+    - history
+    - medals
+    - name
+    - patronymic
+    - rank
+    - relative
+    - role
+    - surname
+    type: object
+  model.ProfileLoginResponse:
     properties:
       message:
         type: string
     type: object
   web.ErrorResponse:
     properties:
+      error: {}
       message:
         $ref: '#/definitions/web.errorDetail'
     type: object
   web.errorDetail:
     enum:
-    - authorisation error
     - server error
-    - forbidden
+    - token expected
+    - invalid token
+    - invalid subject
+    - invalid basic auth form
+    - invalid login or password
+    - validation error
     type: string
     x-enum-varnames:
-    - UnauthorizedError
     - InternalServerError
-    - ForbiddenError
+    - TokenExpectedError
+    - TokenInvalidError
+    - InvalidSubjectError
+    - InvalidBasicAuthForm
+    - InvalidLoginPassword
+    - InvalidRequestValidate
 info:
   contact: {}
   title: Polk Sirius
   version: "1.0"
 paths:
+  /person/create:
+    post:
+      parameters:
+      - description: New Person
+        in: body
+        name: person
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreatePersonModel'
+      responses:
+        "201":
+          description: Created
+      tags:
+      - Person
   /profile/login:
     post:
       consumes:
@@ -36,7 +110,7 @@ paths:
         "200":
           description: Authorization OK
           schema:
-            $ref: '#/definitions/models.ProfileLoginResponse'
+            $ref: '#/definitions/model.ProfileLoginResponse'
         "401":
           description: Authorization error
           schema:
@@ -45,7 +119,7 @@ paths:
       - BasicAuth: []
       summary: Login admin
       tags:
-      - auth
+      - Auth
   /profile/refresh:
     post:
       description: Refresh access and refresh tokens for admin
@@ -55,7 +129,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.ProfileLoginResponse'
+            $ref: '#/definitions/model.ProfileLoginResponse'
         "401":
           description: Unauthorized
           schema:
@@ -70,7 +144,7 @@ paths:
             $ref: '#/definitions/web.ErrorResponse'
       summary: Refresh admin tokens
       tags:
-      - auth
+      - Auth
 securityDefinitions:
   BasicAuth:
     type: basic

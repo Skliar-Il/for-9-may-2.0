@@ -15,6 +15,29 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/person/create": {
+            "post": {
+                "tags": [
+                    "Person"
+                ],
+                "parameters": [
+                    {
+                        "description": "New Person",
+                        "name": "person",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CreatePersonModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                }
+            }
+        },
         "/profile/login": {
             "post": {
                 "security": [
@@ -30,14 +53,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
                 "summary": "Login admin",
                 "responses": {
                     "200": {
                         "description": "Authorization OK",
                         "schema": {
-                            "$ref": "#/definitions/models.ProfileLoginResponse"
+                            "$ref": "#/definitions/model.ProfileLoginResponse"
                         }
                     },
                     "401": {
@@ -56,14 +79,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
                 "summary": "Refresh admin tokens",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.ProfileLoginResponse"
+                            "$ref": "#/definitions/model.ProfileLoginResponse"
                         }
                     },
                     "401": {
@@ -89,7 +112,78 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.ProfileLoginResponse": {
+        "model.CreatePersonModel": {
+            "type": "object",
+            "required": [
+                "contact_email",
+                "contact_name",
+                "contact_patronymic",
+                "contact_surname",
+                "contact_telegram",
+                "history",
+                "medals",
+                "name",
+                "patronymic",
+                "rank",
+                "relative",
+                "role",
+                "surname"
+            ],
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "contact_email": {
+                    "type": "string"
+                },
+                "contact_name": {
+                    "type": "string"
+                },
+                "contact_patronymic": {
+                    "type": "string"
+                },
+                "contact_surname": {
+                    "type": "string"
+                },
+                "contact_telegram": {
+                    "type": "string"
+                },
+                "date_birth": {
+                    "type": "integer"
+                },
+                "date_death": {
+                    "type": "integer"
+                },
+                "history": {
+                    "type": "string"
+                },
+                "medals": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "patronymic": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "relative": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "boolean"
+                },
+                "surname": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ProfileLoginResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -100,6 +194,7 @@ const docTemplate = `{
         "web.ErrorResponse": {
             "type": "object",
             "properties": {
+                "error": {},
                 "message": {
                     "$ref": "#/definitions/web.errorDetail"
                 }
@@ -108,14 +203,22 @@ const docTemplate = `{
         "web.errorDetail": {
             "type": "string",
             "enum": [
-                "authorisation error",
                 "server error",
-                "forbidden"
+                "token expected",
+                "invalid token",
+                "invalid subject",
+                "invalid basic auth form",
+                "invalid login or password",
+                "validation error"
             ],
             "x-enum-varnames": [
-                "UnauthorizedError",
                 "InternalServerError",
-                "ForbiddenError"
+                "TokenExpectedError",
+                "TokenInvalidError",
+                "InvalidSubjectError",
+                "InvalidBasicAuthForm",
+                "InvalidLoginPassword",
+                "InvalidRequestValidate"
             ]
         }
     },

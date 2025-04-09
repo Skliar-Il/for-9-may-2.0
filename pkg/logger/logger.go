@@ -1,10 +1,12 @@
 package logger
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
+	"time"
+
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"time"
 )
 
 type KeyLoggerType string
@@ -18,41 +20,45 @@ type Logger struct {
 	l *zap.Logger
 }
 
-func New(ctx *gin.Context) error {
+func New(ctx context.Context) error {
 	logger, err := zap.NewProduction()
 	if err != nil {
 		return err
 	}
 
-	ctx.Set(string(lKey), &Logger{logger})
+	if ctx.Value(RequestId) == nil {
+		ctx = context.WithValue(ctx, RequestId, uuid.New().String())
+	}
+
+	ctx = context.WithValue(ctx, lKey, &Logger{logger})
 	return nil
 }
 
-func GetLoggerFromCtx(ctx *gin.Context) *Logger {
-	logger, exist := ctx.Get(string(lKey))
+func GetLoggerFromCtx(ctx context.Context) *Logger {
+	logger, exist := ctx.Value(lKey).(*Logger)
 	if !exist {
 		return nil
 	}
-	return logger.(*Logger)
+	return logger
 }
 
-func (l *Logger) Info(ctx *gin.Context, msg string, fields ...zap.Field) {
-	if ctx.GetString(string(RequestId)) != "" {
-		fields = append(fields, zap.String(string(RequestId), ctx.GetString(string(RequestId))))
+func (l *Logger) Info(ctx context.Context, msg string, fields ...zap.Field) {
+	if id, ok := ctx.Value(RequestId).(string); ok {
+		fields = append(fields, zap.String(string(RequestId), id))
 	}
 	l.l.Info(msg, fields...)
 }
 
-func (l *Logger) Error(ctx *gin.Context, msg string, fields ...zap.Field) {
-	if ctx.GetString(string(RequestId)) != "" {
-		fields = append(fields, zap.String(string(RequestId), ctx.GetString(string(RequestId))))
+func (l *Logger) Error(ctx context.Context, msg string, fields ...zap.Field) {
+	if id, ok := ctx.Value(RequestId).(string); ok {
+		fields = append(fields, zap.String(string(RequestId), id))
 	}
 	l.l.Error(msg, fields...)
 }
 
-func (l *Logger) Fatal(ctx *gin.Context, msg string, fields ...zap.Field) {
-	if ctx.GetString(string(RequestId)) != "" {
-		fields = append(fields, zap.String(string(RequestId), ctx.GetString(string(RequestId))))
+func (l *Logger) Fatal(ctx context.Context, msg string, fields ...zap.Field) {
+	if id, ok := ctx.Value(RequestId).(string); ok {
+		fields = append(fields, zap.String(string(RequestId), id))
 	}
 	l.l.Fatal(msg, fields...)
 }

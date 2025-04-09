@@ -33,7 +33,7 @@
 
 # База данных
 ## Модель
-![Модель](./resources/photo/database.png)
+![Модель](resources/database/image/database.png)
 
 ## Описание
 ...
