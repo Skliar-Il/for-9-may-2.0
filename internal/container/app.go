@@ -44,12 +44,13 @@ func NewApp() *http.Server {
 	}))
 
 	server := &http.Server{
-		Addr:           fmt.Sprintf("localhost:%d", cfg.Server.HttpPort),
+		Addr:           fmt.Sprintf("0.0.0.0:%d", cfg.Server.HttpPort),
 		Handler:        serverEngine,
 		ReadTimeout:    5 * time.Second,
 		WriteTimeout:   5 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
+	log.Printf("app started on port: %d", cfg.Server.HttpPort)
 
 	privetKey, err := jwtservice.LoadPrivateKey("./certs/private.pem")
 	if err != nil {

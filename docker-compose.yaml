@@ -49,7 +49,7 @@ services:
     env_file:
       - .env
     environment:
-      SERVER_PORT_HTTP: 8081
+      SERVER_HTTP_PORT: 8081
       POSTGRES_HOST: db
       REDIS_HOST: redis
       POSTGRES_PORT: 5432
@@ -72,7 +72,7 @@ services:
     env_file:
       - .env
     environment:
-      SERVER_PORT_HTTP: 8082
+      SERVER_HTTP_PORT: 8082
       POSTGRES_HOST: db
       REDIS_HOST: redis
       POSTGRES_PORT: 5432
@@ -95,7 +95,7 @@ services:
     env_file:
       - .env
     environment:
-      SERVER_PORT_HTTP: 8083
+      SERVER_HTTP_PORT: 8083
       POSTGRES_HOST: db
       REDIS_HOST: redis
       POSTGRES_PORT: 5432
