@@ -8,6 +8,7 @@ import (
 
 type FormRepositoryInterface interface {
 	CreateForm(ctx context.Context, tx pgx.Tx, personID *uuid.UUID) (*uuid.UUID, error)
+	StatusForm(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (bool, error)
 }
 
 type FormRepository struct {
@@ -26,5 +27,20 @@ func (f FormRepository) CreateForm(ctx context.Context, tx pgx.Tx, personID *uui
 	if err := tx.QueryRow(ctx, query, personID).Scan(&formID); err != nil {
 		return nil, err
 	}
+
 	return &formID, nil
+}
+
+func (f FormRepository) StatusForm(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (bool, error) {
+	query := `
+		SELECT status_check
+		FROM form
+		WHERE person_id = $1
+	`
+	var formStatus bool
+	if err := tx.QueryRow(ctx, query, personID).Scan(&formStatus); err != nil {
+		return false, err
+	}
+
+	return formStatus, nil
 }

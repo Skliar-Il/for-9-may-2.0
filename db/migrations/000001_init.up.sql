@@ -78,10 +78,10 @@ SELECT
         SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
                 'id', m.id,
                 'name', m.name,
-                'url', m.photo_link
+                'photo_link', m.photo_link
                                  )), '[]')
         FROM medal_person mp
-                 JOIN medal m ON m.id = mp.medal_id
+        JOIN medal m ON m.id = mp.medal_id
         WHERE mp.person_id = p.id
     ) AS medals
 FROM person p

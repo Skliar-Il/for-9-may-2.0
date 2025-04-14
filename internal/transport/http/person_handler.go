@@ -95,7 +95,7 @@ func (p *PersonHandler) GetPersonList(c *gin.Context) {
 		}
 	}
 
-	person, err := p.PersonService.GetPerson(c, status)
+	person, err := p.PersonService.GetPersons(c, status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
@@ -149,7 +149,7 @@ func (p *PersonHandler) DeletePerson(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// GetPerson godoc
+// GetPersonByID godoc
 // @Summary Get person details
 // @Description Retrieves complete information about a person by their ID, including medal awards
 // @Tags Person
@@ -162,8 +162,13 @@ func (p *PersonHandler) DeletePerson(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Security ApiKeyAuth
 // @Router /person/{id} [get]
-func (p *PersonHandler) GetPerson(c *gin.Context) {
-	_ = c.Param("id")
+func (p *PersonHandler) GetPersonByID(c *gin.Context) {
+	personIDStr := c.Param("id")
+	personID, err := uuid.Parse(personIDStr)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, "invalid format id, mast be uuid v4")
+	}
+	p.PersonService.GetPersonByID(c, personID)
 	c.JSON(http.StatusOK, model.PersonModel{
 		ID:                "123e4567-e89b-12d3-a456-426614174000",
 		Name:              "Иван",

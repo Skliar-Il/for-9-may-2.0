@@ -3,7 +3,7 @@ package model
 type MedalModel struct {
 	ID       int    `json:"id"`
 	Name     string `json:"name"`
-	ImageUrl string `json:"image_url"`
+	ImageUrl string `json:"photo_link"`
 }
 
 type CreateMedalModel struct {

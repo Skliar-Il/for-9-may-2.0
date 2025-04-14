@@ -54,7 +54,7 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 		personGroup.GET("", personController.GetPersonList)
 		personGroup.PATCH("/validate/:id", personController.ValidatePerson)
 		personGroup.DELETE("/:id", personController.DeletePerson)
-		personGroup.GET("/:id", personController.GetPerson)
+		personGroup.GET("/:id", personController.GetPersonByID)
 		personGroup.PUT("", personController.UpdatePerson)
 		personGroup.GET("/count", personController.CountPerson)
 	}

@@ -95,7 +95,7 @@ func (p *PersonService) CreatePeron(ctx *gin.Context, person *model.CreatePerson
 	return personUUID, nil
 }
 
-func (p *PersonService) GetPerson(ctx *gin.Context, check bool) ([]model.PersonModel, error) {
+func (p *PersonService) GetPersons(ctx *gin.Context, check bool) ([]model.PersonModel, error) {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := p.DBPool.Begin(ctx)
 	if err != nil {
@@ -110,6 +110,34 @@ func (p *PersonService) GetPerson(ctx *gin.Context, check bool) ([]model.PersonM
 		return nil, web.InternalServerError{}
 	}
 	return persons, nil
+}
+
+func (p *PersonService) CountPerson(ctx *gin.Context) (*model.PersonCountModel, error) {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := p.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "begin tx error", zap.Error(err))
+	}
+	defer database.RollbackTx(ctx, tx, localLogger)
+
+	personCount, err := p.PersonRepository.CountUnread(ctx, tx)
+	if err != nil {
+		localLogger.Error(ctx, "get count unread person error", zap.Error(err))
+		return nil, web.InternalServerError{}
+	}
+
+	return personCount, nil
+}
+
+func (p *PersonService) GetPersonByID(ctx *gin.Context, personID uuid.UUID) (*model.PersonModel, error) {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := p.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "start tx error", zap.Error(err))
+		return nil, web.InternalServerError{}
+	}
+	p.FormRepository.StatusForm(ctx, tx, personID)
+	return nil, nil
 }
 
 func (p *PersonService) ValidatePerson(ctx *gin.Context, id uuid.UUID) error {
@@ -142,21 +170,4 @@ func (p *PersonService) DeletePerson(ctx *gin.Context, id uuid.UUID) error {
 	}
 	defer database.RollbackTx(ctx, tx, localLogger)
 	return nil
-}
-
-func (p *PersonService) CountPerson(ctx *gin.Context) (*model.PersonCountModel, error) {
-	localLogger := logger.GetLoggerFromCtx(ctx)
-	tx, err := p.DBPool.Begin(ctx)
-	if err != nil {
-		localLogger.Error(ctx, "begin tx error", zap.Error(err))
-	}
-	defer database.RollbackTx(ctx, tx, localLogger)
-
-	personCount, err := p.PersonRepository.CountUnread(ctx, tx)
-	if err != nil {
-		localLogger.Error(ctx, "get count unread person error", zap.Error(err))
-		return nil, web.InternalServerError{}
-	}
-
-	return personCount, nil
 }

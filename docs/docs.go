@@ -503,10 +503,10 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "image_url": {
+                "name": {
                     "type": "string"
                 },
-                "name": {
+                "photo_link": {
                     "type": "string"
                 }
             }

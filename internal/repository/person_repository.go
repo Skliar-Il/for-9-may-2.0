@@ -115,6 +115,43 @@ func (PersonRepository) GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([
 	return persons, nil
 }
 
+func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*model.PersonModel, error) {
+	query := `
+	SELECT *
+	FROM all_person_fields_view
+	WHERE id = $1
+	`
+	var statusCheck bool
+	var p model.PersonModel
+	var medalsJSON []byte
+	err := tx.QueryRow(ctx, query, personID).Scan(
+		&p.ID,
+		&p.Name,
+		&p.Surname,
+		&p.Patronymic,
+		&p.DateBirth,
+		&p.DateDeath,
+		&p.City,
+		&p.History,
+		&p.Rank,
+		&p.ContactEmail,
+		&p.ContactName,
+		&p.ContactSurname,
+		&p.ContactPatronymic,
+		&p.ContactTelegram,
+		&p.Relative,
+		&statusCheck,
+		&medalsJSON,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("scan row error: %w", err)
+	}
+	if err := json.Unmarshal(medalsJSON, &p.Medals); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal medals: %w", err)
+	}
+	return nil, nil
+}
+
 func (PersonRepository) Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
 	query := `
 			UPDATE form f

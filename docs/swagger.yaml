@@ -60,9 +60,9 @@ definitions:
     properties:
       id:
         type: integer
-      image_url:
-        type: string
       name:
+        type: string
+      photo_link:
         type: string
     type: object
   model.PersonCountModel:
