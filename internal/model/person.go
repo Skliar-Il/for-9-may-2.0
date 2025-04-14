@@ -37,3 +37,7 @@ type PersonModel struct {
 	Medals            []MedalModel `json:"medals"`
 	Relative          string       `json:"relative"`
 }
+
+type PersonCountModel struct {
+	Count int `json:"count"`
+}

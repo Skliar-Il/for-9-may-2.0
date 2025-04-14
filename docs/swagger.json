@@ -7,6 +7,14 @@
     },
     "basePath": "/api",
     "paths": {
+        "/medal": {
+            "get": {
+                "tags": [
+                    "Medal"
+                ],
+                "responses": {}
+            }
+        },
         "/medal/create": {
             "post": {
                 "tags": [
@@ -80,6 +88,39 @@
                 }
             }
         },
+        "/person/count": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Person"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.PersonCountModel"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/web.UnAuthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/web.InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/person/create": {
             "post": {
                 "tags": [
@@ -118,7 +159,7 @@
                 "tags": [
                     "Person"
                 ],
-                "summary": "Validate person",
+                "summary": "ValidatePerson person",
                 "parameters": [
                     {
                         "type": "string",
@@ -462,6 +503,14 @@
                 }
             }
         },
+        "model.PersonCountModel": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.PersonModel": {
             "type": "object",
             "properties": {
@@ -541,6 +590,9 @@
             }
         },
         "web.InternalServerError": {
+            "type": "object"
+        },
+        "web.UnAuthorizedError": {
             "type": "object"
         },
         "web.ValidationError": {

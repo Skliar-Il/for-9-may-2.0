@@ -13,6 +13,7 @@ type PersonRepositoryInterface interface {
 	CreatePerson(ctx context.Context, tx pgx.Tx, person *model.CreatePersonModel) (*uuid.UUID, error)
 	GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([]model.PersonModel, error)
 	Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
+	CountUnread(ctx context.Context, tx pgx.Tx) (*model.PersonCountModel, error)
 }
 
 type PersonRepository struct{}
@@ -56,36 +57,9 @@ func (PersonRepository) CreatePerson(
 
 func (PersonRepository) GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([]model.PersonModel, error) {
 	query := `
-        SELECT 
-            p.id,
-            p.name,
-            p.surname,
-            p.patronymic,
-            p.date_birth,
-            p.date_death,
-            p.city_birth,
-            p.history,
-            p.rank,
-            o.email,
-            o.name,
-            o.surname,
-            o.patronymic,
-            o.telegram,
-            o.relative,
-            (
-                SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
-                    'id', m.id,
-                    'name', m.name,
-                    'url', m.photo_link
-                )), '[]')
-                FROM medal_person mp
-                JOIN medal m ON m.id = mp.medal_id
-                WHERE mp.person_id = p.id
-            ) AS medals
-        FROM person p
-        LEFT JOIN form f ON f.person_id = p.id
-        LEFT JOIN owner o ON o.form_id = f.id
-        WHERE f.status_check = $1
+		SELECT *
+		FROM all_person_fields_view
+        WHERE status_check = $1
     `
 
 	rows, err := tx.Query(ctx, query, check)
@@ -94,6 +68,7 @@ func (PersonRepository) GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([
 	}
 	defer rows.Close()
 
+	var statusCheck bool
 	var persons []model.PersonModel
 	if rows != nil {
 		for rows.Next() {
@@ -116,6 +91,7 @@ func (PersonRepository) GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([
 				&p.ContactPatronymic,
 				&p.ContactTelegram,
 				&p.Relative,
+				&statusCheck,
 				&medalsJSON,
 			)
 			if err != nil {
@@ -152,4 +128,33 @@ func (PersonRepository) Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) e
 	}
 
 	return nil
+}
+
+func (PersonRepository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
+	query := `
+			DELETE person p
+			WHERE p.id = $1
+`
+	status, err := tx.Exec(ctx, query, id)
+	if err != nil {
+		return nil
+	}
+	if status.RowsAffected() != 1 {
+
+	}
+	return nil
+}
+
+func (PersonRepository) CountUnread(ctx context.Context, tx pgx.Tx) (*model.PersonCountModel, error) {
+	query := `
+		SELECT COUNT(*) AS count
+		FROM person p
+		LEFT JOIN form f ON f.person_id = p.id
+		WHERE f.status_check = false
+		`
+	var personCount model.PersonCountModel
+	if err := tx.QueryRow(ctx, query).Scan(&personCount.Count); err != nil {
+		return nil, err
+	}
+	return &personCount, nil
 }

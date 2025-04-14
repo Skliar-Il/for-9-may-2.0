@@ -4,6 +4,7 @@ import (
 	"for9may/pkg/database"
 	"for9may/pkg/redis"
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 )
 
 type ServerCfg struct {
@@ -25,6 +26,10 @@ type Config struct {
 
 func New() (*Config, error) {
 	var cfg Config
+
+	if err := godotenv.Load(); err != nil {
+		return nil, err
+	}
 	if err := cleanenv.ReadEnv(&cfg); err != nil {
 		return nil, err
 	}

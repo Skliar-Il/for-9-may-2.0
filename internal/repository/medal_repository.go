@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"for9may/internal/model"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
@@ -9,6 +11,8 @@ import (
 type MedalRepositoryInterface interface {
 	CheckMedals(ctx context.Context, tx pgx.Tx, medals []int) (*bool, error)
 	CreateMedalPerson(ctx context.Context, tx pgx.Tx, userID *uuid.UUID, medals []int) error
+	GetMedals(ctx context.Context, tx pgx.Tx) ([]model.MedalModel, error)
+	CreateMedal(ctx context.Context, tx pgx.Tx, medal *model.CreateMedalModel) error
 }
 type MedalRepository struct{}
 
@@ -39,6 +43,45 @@ func (m MedalRepository) CreateMedalPerson(ctx context.Context, tx pgx.Tx, userI
 		if _, err := tx.Exec(ctx, query, userID, medalID); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (m MedalRepository) GetMedals(ctx context.Context, tx pgx.Tx) ([]model.MedalModel, error) {
+	query := `
+		SELECT id, name, photo_link
+		FROM medal
+		`
+	rows, err := tx.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("query error(select medals): %w", err)
+	}
+
+	var medals []model.MedalModel
+	for rows.Next() {
+		var medal model.MedalModel
+
+		if err := rows.Scan(
+			&medal.ID,
+			&medal.Name,
+			&medal.ImageUrl,
+		); err != nil {
+			return nil, fmt.Errorf("scan medals rows error: %w", err)
+		}
+		medals = append(medals, medal)
+	}
+	return medals, nil
+}
+
+func (m MedalRepository) CreateMedal(ctx context.Context, tx pgx.Tx, medal *model.CreateMedalModel) error {
+	query := `
+		INSERT INTO medal(name)
+		VALUES ($1)
+		`
+
+	_, err := tx.Exec(ctx, query, medal.Name)
+	if err != nil {
+		return err
 	}
 	return nil
 }

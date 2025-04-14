@@ -112,7 +112,7 @@ func (p *PersonService) GetPerson(ctx *gin.Context, check bool) ([]model.PersonM
 	return persons, nil
 }
 
-func (p *PersonService) Validate(ctx *gin.Context, id uuid.UUID) error {
+func (p *PersonService) ValidatePerson(ctx *gin.Context, id uuid.UUID) error {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := p.DBPool.Begin(ctx)
 	if err != nil {
@@ -132,4 +132,31 @@ func (p *PersonService) Validate(ctx *gin.Context, id uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (p *PersonService) DeletePerson(ctx *gin.Context, id uuid.UUID) error {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := p.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "begin tx error", zap.Error(err))
+	}
+	defer database.RollbackTx(ctx, tx, localLogger)
+	return nil
+}
+
+func (p *PersonService) CountPerson(ctx *gin.Context) (*model.PersonCountModel, error) {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := p.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "begin tx error", zap.Error(err))
+	}
+	defer database.RollbackTx(ctx, tx, localLogger)
+
+	personCount, err := p.PersonRepository.CountUnread(ctx, tx)
+	if err != nil {
+		localLogger.Error(ctx, "get count unread person error", zap.Error(err))
+		return nil, web.InternalServerError{}
+	}
+
+	return personCount, nil
 }

@@ -36,10 +36,11 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 		ownerRepository,
 	)
 	profileService := service.NewProfileService(cfg.Admin, jwtService)
+	medalService := service.NewMedalService(dbPool, medalRepository)
 
 	personController := NewPersonHandler(personService, profileService, jwtService)
 	profileController := NewProfileHandler(jwtService, cfg.Admin)
-	medalController := NewMedalHandler()
+	medalController := NewMedalHandler(medalService)
 
 	profileGroup := api.Group("/profile")
 	{
@@ -55,10 +56,12 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 		personGroup.DELETE("/:id", personController.DeletePerson)
 		personGroup.GET("/:id", personController.GetPerson)
 		personGroup.PUT("", personController.UpdatePerson)
+		personGroup.GET("/count", personController.CountPerson)
 	}
 
 	medalGroup := api.Group("/medal")
 	{
 		medalGroup.POST("/create", medalController.CreateMedal)
+		medalGroup.GET("", medalController.GetMedals)
 	}
 }

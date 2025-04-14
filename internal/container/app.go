@@ -35,9 +35,17 @@ func NewApp() *http.Server {
 	gin.SetMode(cfg.Server.ServerMode)
 
 	serverEngine.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"*"},
-		AllowHeaders:     []string{"*"},
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"*"},
+		AllowHeaders: []string{
+			"Origin",
+			"Accept",
+			"X-Requested-With",
+			"Content-Type",
+			"Authorization",
+			"Access-Control-Request-Method",
+			"Access-Control-Request-Headers",
+		},
 		ExposeHeaders:    []string{"*"},
 		AllowCredentials: true,
 		MaxAge:           6 * time.Hour,

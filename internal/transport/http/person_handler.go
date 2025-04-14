@@ -105,7 +105,7 @@ func (p *PersonHandler) GetPersonList(c *gin.Context) {
 }
 
 // ValidatePerson
-// @Summary Validate person
+// @Summary ValidatePerson person
 // @Description status switch status check on true
 // @Tags Person
 // @Accept json
@@ -128,7 +128,7 @@ func (p *PersonHandler) ValidatePerson(c *gin.Context) {
 		localLogger.Info(c, "parse uuid error", zap.Error(err))
 		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, web.ValidationError{Message: "invalid type id"})
 	}
-	if err := p.PersonService.Validate(c, id); err != nil {
+	if err := p.PersonService.ValidatePerson(c, id); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
@@ -220,4 +220,24 @@ func (p *PersonHandler) UpdatePerson(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusNoContent, nil)
+}
+
+// CountPerson
+// @Summery get count not check person
+// @Accept json
+// @Produce json
+// @Tags Person
+// @Success 200 {object} model.PersonCountModel
+// @Failure 401 {object} web.UnAuthorizedError
+// @Failure 500 {object} web.InternalServerError
+// @Router /person/count [get]
+func (p *PersonHandler) CountPerson(c *gin.Context) {
+	localLogger := logger.GetLoggerFromCtx(c)
+	personCount, err := p.PersonService.CountPerson(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+	localLogger.Info(c, "get count unread person")
+	c.JSON(http.StatusOK, personCount)
 }

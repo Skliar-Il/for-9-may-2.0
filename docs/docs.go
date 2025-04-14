@@ -15,6 +15,14 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/medal": {
+            "get": {
+                "tags": [
+                    "Medal"
+                ],
+                "responses": {}
+            }
+        },
         "/medal/create": {
             "post": {
                 "tags": [
@@ -88,6 +96,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/person/count": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Person"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.PersonCountModel"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/web.UnAuthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/web.InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/person/create": {
             "post": {
                 "tags": [
@@ -126,7 +167,7 @@ const docTemplate = `{
                 "tags": [
                     "Person"
                 ],
-                "summary": "Validate person",
+                "summary": "ValidatePerson person",
                 "parameters": [
                     {
                         "type": "string",
@@ -470,6 +511,14 @@ const docTemplate = `{
                 }
             }
         },
+        "model.PersonCountModel": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.PersonModel": {
             "type": "object",
             "properties": {
@@ -549,6 +598,9 @@ const docTemplate = `{
             }
         },
         "web.InternalServerError": {
+            "type": "object"
+        },
+        "web.UnAuthorizedError": {
             "type": "object"
         },
         "web.ValidationError": {
