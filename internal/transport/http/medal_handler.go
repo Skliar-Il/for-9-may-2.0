@@ -31,11 +31,12 @@ func (m *MedalHandler) CreateMedal(c *gin.Context) {
 		return
 	}
 
-	if err := m.MedalService.CreateMedal(c, &medal); err != nil {
+	medalID, err := m.MedalService.CreateMedal(c, &medal)
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusCreated, nil)
+	c.JSON(http.StatusCreated, gin.H{"id": medalID})
 }
 
 // GetMedals

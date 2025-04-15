@@ -12,7 +12,7 @@ type MedalRepositoryInterface interface {
 	CheckMedals(ctx context.Context, tx pgx.Tx, medals []int) (*bool, error)
 	CreateMedalPerson(ctx context.Context, tx pgx.Tx, userID *uuid.UUID, medals []int) error
 	GetMedals(ctx context.Context, tx pgx.Tx) ([]model.MedalModel, error)
-	CreateMedal(ctx context.Context, tx pgx.Tx, medal *model.CreateMedalModel) error
+	CreateMedal(ctx context.Context, tx pgx.Tx, medal *model.CreateMedalModel) (int, error)
 }
 type MedalRepository struct{}
 
@@ -73,15 +73,16 @@ func (m MedalRepository) GetMedals(ctx context.Context, tx pgx.Tx) ([]model.Meda
 	return medals, nil
 }
 
-func (m MedalRepository) CreateMedal(ctx context.Context, tx pgx.Tx, medal *model.CreateMedalModel) error {
+func (m MedalRepository) CreateMedal(ctx context.Context, tx pgx.Tx, medal *model.CreateMedalModel) (int, error) {
 	query := `
 		INSERT INTO medal(name, photo_link)
 		VALUES ($1, $2)
+		RETURNING id
 		`
 
-	_, err := tx.Exec(ctx, query, medal.Name, medal.ImageLink)
-	if err != nil {
-		return err
+	var medalID int
+	if err := tx.QueryRow(ctx, query, medal.Name, medal.ImageLink).Scan(&medalID); err != nil {
+		return 0, err
 	}
-	return nil
+	return medalID, nil
 }

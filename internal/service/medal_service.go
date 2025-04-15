@@ -41,24 +41,26 @@ func (m *MedalService) GetMedals(ctx *gin.Context) ([]model.MedalModel, error) {
 	return medals, nil
 }
 
-func (m *MedalService) CreateMedal(ctx *gin.Context, medal *model.CreateMedalModel) error {
+func (m *MedalService) CreateMedal(ctx *gin.Context, medal *model.CreateMedalModel) (int, error) {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := m.DBPool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("begin tx error: %w", err)
+		localLogger.Error(ctx, "begin tx error", zap.Error(err))
+		return 0, web.InternalServerError{}
 	}
 	defer database.RollbackTx(ctx, tx, localLogger)
 
-	if err := m.MedalRepository.CreateMedal(ctx, tx, medal); err != nil {
+	medalID, err := m.MedalRepository.CreateMedal(ctx, tx, medal)
+	if err != nil {
 		pgError := database.ValidatePgxError(err)
 		if pgError != nil {
 			if pgError.Type == database.TypeDuplicate {
-				return web.BadRequestError{Message: "medal already exist"}
+				return 0, web.BadRequestError{Message: "medal already exist"}
 
 			} else {
 
 				localLogger.Error(ctx, "database error", zap.Error(err))
-				return web.InternalServerError{}
+				return 0, web.InternalServerError{}
 			}
 		}
 
@@ -69,5 +71,5 @@ func (m *MedalService) CreateMedal(ctx *gin.Context, medal *model.CreateMedalMod
 		localLogger.Error(ctx, "commit error", zap.Error(err))
 	}
 
-	return nil
+	return medalID, nil
 }
