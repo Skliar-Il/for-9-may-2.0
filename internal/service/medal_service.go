@@ -37,6 +37,9 @@ func (m *MedalService) GetMedals(ctx *gin.Context) ([]model.MedalModel, error) {
 		localLogger.Error(ctx, "get medals error", zap.Error(err))
 		return nil, web.InternalServerError{}
 	}
+	if medals == nil {
+		medals = []model.MedalModel{}
+	}
 
 	return medals, nil
 }

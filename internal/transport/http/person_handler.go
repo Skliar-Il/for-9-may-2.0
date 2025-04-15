@@ -95,13 +95,13 @@ func (p *PersonHandler) GetPersonList(c *gin.Context) {
 		}
 	}
 
-	person, err := p.PersonService.GetPersons(c, status)
+	persons, err := p.PersonService.GetPersons(c, status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
-
-	c.JSON(http.StatusOK, person)
+	
+	c.JSON(http.StatusOK, persons)
 }
 
 // ValidatePerson
@@ -155,7 +155,7 @@ func (p *PersonHandler) DeletePerson(c *gin.Context) {
 	if err := p.PersonService.DeletePerson(c, personID); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 	}
-	
+
 	c.JSON(http.StatusNoContent, nil)
 }
 

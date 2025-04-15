@@ -104,11 +104,15 @@ func (p *PersonService) GetPersons(ctx *gin.Context, check bool) ([]model.Person
 	}
 	defer database.RollbackTx(ctx, tx, localLogger)
 
-	persons, err := p.PersonRepository.GetPerson(ctx, tx, check)
+	persons, err := p.PersonRepository.GetPersons(ctx, tx, check)
 	if err != nil {
 		localLogger.Error(ctx, "get person error", zap.Error(err))
 		return nil, web.InternalServerError{}
 	}
+	if persons == nil {
+		persons = []model.PersonModel{}
+	}
+
 	return persons, nil
 }
 

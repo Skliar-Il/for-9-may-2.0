@@ -11,7 +11,7 @@ import (
 
 type PersonRepositoryInterface interface {
 	CreatePerson(ctx context.Context, tx pgx.Tx, person *model.CreatePersonModel) (*uuid.UUID, error)
-	GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([]model.PersonModel, error)
+	GetPersons(ctx context.Context, tx pgx.Tx, check bool) ([]model.PersonModel, error)
 	Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
 	CountUnread(ctx context.Context, tx pgx.Tx) (*model.PersonCountModel, error)
 	GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*model.PersonModel, error)
@@ -57,7 +57,7 @@ func (PersonRepository) CreatePerson(
 	return &personID, nil
 }
 
-func (PersonRepository) GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([]model.PersonModel, error) {
+func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) ([]model.PersonModel, error) {
 	query := `
 		SELECT *
 		FROM all_person_fields_view
