@@ -15,6 +15,7 @@ type PersonRepositoryInterface interface {
 	Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
 	CountUnread(ctx context.Context, tx pgx.Tx) (*model.PersonCountModel, error)
 	GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*model.PersonModel, error)
+	Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
 }
 
 type PersonRepository struct{}
@@ -170,16 +171,14 @@ func (PersonRepository) Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) e
 
 func (PersonRepository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
 	query := `
-			DELETE person p
+			DELETE FROM person p
 			WHERE p.id = $1
 `
-	status, err := tx.Exec(ctx, query, id)
+	_, err := tx.Exec(ctx, query, id)
 	if err != nil {
 		return nil
 	}
-	if status.RowsAffected() != 1 {
 
-	}
 	return nil
 }
 

@@ -145,7 +145,17 @@ func (p *PersonHandler) ValidatePerson(c *gin.Context) {
 // @Failure 500
 // @Router /person/{id} [delete]
 func (p *PersonHandler) DeletePerson(c *gin.Context) {
-	_ = c.Param("id")
+	personIDStr := c.Param("id")
+	personID, err := uuid.Parse(personIDStr)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, "invalid format id, mast be uuid v4")
+		return
+	}
+
+	if err := p.PersonService.DeletePerson(c, personID); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+	}
+	
 	c.JSON(http.StatusNoContent, nil)
 }
 

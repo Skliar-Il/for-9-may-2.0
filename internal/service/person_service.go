@@ -181,5 +181,21 @@ func (p *PersonService) DeletePerson(ctx *gin.Context, id uuid.UUID) error {
 		localLogger.Error(ctx, "begin tx error", zap.Error(err))
 	}
 	defer database.RollbackTx(ctx, tx, localLogger)
+
+	if err := p.PersonRepository.Delete(ctx, tx, id); err != nil {
+		if pgError := database.ValidatePgxError(err); pgError != nil {
+			if pgError.Type == database.TypeNoRows {
+				return web.NotFoundError{Message: "medal not found"}
+			}
+		}
+
+		localLogger.Error(ctx, "database error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		localLogger.Error(ctx, "commit error", zap.Error(err))
+	}
+
 	return nil
 }
