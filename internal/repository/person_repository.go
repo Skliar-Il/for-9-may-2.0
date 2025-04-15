@@ -92,6 +92,7 @@ func (PersonRepository) GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([
 				&p.ContactTelegram,
 				&p.Relative,
 				&p.StatusCheck,
+				&p.DatePublished,
 				&medalsJSON,
 			)
 			if err != nil {
@@ -140,6 +141,7 @@ func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID u
 		&p.ContactTelegram,
 		&p.Relative,
 		&p.StatusCheck,
+		&p.DatePublished,
 		&medalsJSON,
 	)
 	if err != nil {

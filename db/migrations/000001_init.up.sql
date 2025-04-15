@@ -73,6 +73,7 @@ SELECT
     o.telegram,
     o.relative,
     f.status_check as status_check,
+    f.date_published,
     (
         SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
                 'id', m.id,
@@ -83,6 +84,6 @@ SELECT
         JOIN medal m ON m.id = mp.medal_id
         WHERE mp.person_id = p.id
     ) AS medals
-FROM person p
-         LEFT JOIN form f ON f.person_id = p.id
-         LEFT JOIN owner o ON o.form_id = f.id;
+    FROM person p
+    LEFT JOIN form f ON f.person_id = p.id
+    LEFT JOIN owner o ON o.form_id = f.id;

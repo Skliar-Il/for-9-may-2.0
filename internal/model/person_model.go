@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type CreatePersonModel struct {
 	Name              string `json:"name" binding:"required"`
 	Surname           string `json:"surname" binding:"required"`
@@ -37,6 +39,7 @@ type PersonModel struct {
 	StatusCheck       bool         `json:"status_check"`
 	Medals            []MedalModel `json:"medals"`
 	Relative          string       `json:"relative"`
+	DatePublished     time.Time    `json:"date_published"`
 }
 
 type PersonCountModel struct {
