@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -52,17 +53,22 @@ func (j *ServiceJWT) DecodeKey(tokenString string) (*jwt.RegisteredClaims, error
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			return j.publicKey, nil
-		})
+		},
+	)
+
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, InvalidTokenError
+		}
 		return nil, err
 	}
 
 	claims, ok := token.Claims.(*jwt.RegisteredClaims)
-	if ok && token.Valid {
-		return claims, nil
+	if !ok || !token.Valid {
+		return nil, InvalidTokenError
 	}
 
-	return nil, InvalidTokenError
+	return claims, nil
 }
 
 func (j *ServiceJWT) SetCookieRefresh(c *gin.Context, token string) {

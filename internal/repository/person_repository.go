@@ -174,9 +174,12 @@ func (PersonRepository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) err
 			DELETE FROM person p
 			WHERE p.id = $1
 `
-	_, err := tx.Exec(ctx, query, id)
+	status, err := tx.Exec(ctx, query, id)
 	if err != nil {
 		return nil
+	}
+	if status.RowsAffected() == 0 {
+		return pgx.ErrNoRows
 	}
 
 	return nil

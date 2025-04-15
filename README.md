@@ -30,6 +30,11 @@
 - REDIS_HOST=localhost - Хост redis внешний
 
 
+- AWS_ACCESS_KEY_ID=asd - Id ключа для работы с Yandex Cloud
+- AWS_SECRET_ACCESS_KEY=asd - Секретный ключ для работы с Yandex Cloud
+- AWS_STORAGE_NAME - Имя бакета в который будут запимываться данные
+
+
 
 # База данных
 ## Модель

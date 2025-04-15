@@ -40,6 +40,10 @@ type PgxError struct {
 	Detail     string
 }
 
+func (p PgxError) Error() string {
+	return p.Type
+}
+
 func ValidatePgxError(err error) *PgxError {
 	if err == nil {
 		return nil

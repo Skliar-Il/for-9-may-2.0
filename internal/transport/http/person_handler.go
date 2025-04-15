@@ -41,7 +41,7 @@ func (p *PersonHandler) NewPerson(c *gin.Context) {
 
 	var person model.CreatePersonModel
 	if err := c.ShouldBindJSON(&person); err != nil {
-		localLogger.Error(c, fmt.Sprintf("invalid body: %v", err))
+		localLogger.Info(c, fmt.Sprintf("invalid body: %v", err))
 		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, web.ValidationError{Message: err.Error()})
 		return
 	}
@@ -100,7 +100,7 @@ func (p *PersonHandler) GetPersonList(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, persons)
 }
 
@@ -148,7 +148,10 @@ func (p *PersonHandler) DeletePerson(c *gin.Context) {
 	personIDStr := c.Param("id")
 	personID, err := uuid.Parse(personIDStr)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, "invalid format id, mast be uuid v4")
+		c.AbortWithStatusJSON(
+			http.StatusUnprocessableEntity,
+			web.ValidationError{Message: "invalid format id, mast be uuid v4"},
+		)
 		return
 	}
 
