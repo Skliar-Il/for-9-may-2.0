@@ -14,6 +14,7 @@ type PersonRepositoryInterface interface {
 	GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([]model.PersonModel, error)
 	Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
 	CountUnread(ctx context.Context, tx pgx.Tx) (*model.PersonCountModel, error)
+	GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*model.PersonModel, error)
 }
 
 type PersonRepository struct{}
@@ -68,7 +69,6 @@ func (PersonRepository) GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([
 	}
 	defer rows.Close()
 
-	var statusCheck bool
 	var persons []model.PersonModel
 	if rows != nil {
 		for rows.Next() {
@@ -91,7 +91,7 @@ func (PersonRepository) GetPerson(ctx context.Context, tx pgx.Tx, check bool) ([
 				&p.ContactPatronymic,
 				&p.ContactTelegram,
 				&p.Relative,
-				&statusCheck,
+				&p.StatusCheck,
 				&medalsJSON,
 			)
 			if err != nil {
@@ -121,7 +121,6 @@ func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID u
 	FROM all_person_fields_view
 	WHERE id = $1
 	`
-	var statusCheck bool
 	var p model.PersonModel
 	var medalsJSON []byte
 	err := tx.QueryRow(ctx, query, personID).Scan(
@@ -140,7 +139,7 @@ func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID u
 		&p.ContactPatronymic,
 		&p.ContactTelegram,
 		&p.Relative,
-		&statusCheck,
+		&p.StatusCheck,
 		&medalsJSON,
 	)
 	if err != nil {
@@ -149,7 +148,7 @@ func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID u
 	if err := json.Unmarshal(medalsJSON, &p.Medals); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal medals: %w", err)
 	}
-	return nil, nil
+	return &p, nil
 }
 
 func (PersonRepository) Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {

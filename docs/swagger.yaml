@@ -4,6 +4,8 @@ definitions:
     properties:
       name:
         type: string
+      photo_link:
+        type: string
     type: object
   model.CreatePersonModel:
     properties:
@@ -104,6 +106,8 @@ definitions:
         type: string
       relative:
         type: string
+      status_check:
+        type: boolean
       surname:
         type: string
     type: object

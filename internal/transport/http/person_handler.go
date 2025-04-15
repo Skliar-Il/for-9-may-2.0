@@ -163,41 +163,44 @@ func (p *PersonHandler) DeletePerson(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Router /person/{id} [get]
 func (p *PersonHandler) GetPersonByID(c *gin.Context) {
+	localLogger := logger.GetLoggerFromCtx(c)
+	statusAuth := true
+
 	personIDStr := c.Param("id")
 	personID, err := uuid.Parse(personIDStr)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, "invalid format id, mast be uuid v4")
 	}
-	p.PersonService.GetPersonByID(c, personID)
-	c.JSON(http.StatusOK, model.PersonModel{
-		ID:                "123e4567-e89b-12d3-a456-426614174000",
-		Name:              "Иван",
-		Surname:           "Иванов",
-		Patronymic:        "Иванович",
-		DateBirth:         1945,
-		DateDeath:         2020,
-		City:              "Москва",
-		History:           "Участник Великой Отечественной войны, герой Советского Союза.",
-		Rank:              "Полковник",
-		ContactEmail:      "contact@example.com",
-		ContactName:       "Алексей",
-		ContactSurname:    "Петров",
-		ContactPatronymic: "Сергеевич",
-		ContactTelegram:   "@alex_petrov",
-		Medals: []model.MedalModel{
-			{
-				ID:       1,
-				Name:     "Золотая Звезда Героя",
-				ImageUrl: "https://example.com/medals/hero_star.png",
-			},
-			{
-				ID:       2,
-				Name:     "Орден Ленина",
-				ImageUrl: "https://example.com/medals/lenin_order.png",
-			},
-		},
-		Relative: "Сын: Петр Иванов",
-	})
+
+	token, err := c.Cookie(jwtservice.AccessTokenCookieName)
+	if err != nil {
+		if errors.Is(err, http.ErrNoCookie) || errors.Is(err, jwtservice.UndefinedTokenError) {
+			statusAuth = false
+		} else {
+			localLogger.Error(c, "get token from cookie", zap.String("error", err.Error()))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, web.InternalServerError{})
+			return
+		}
+	}
+
+	if statusAuth != false {
+		if err := p.ProfileService.CheckAccount(c, token); err != nil {
+			statusAuth = false
+		}
+	}
+
+	person, err := p.PersonService.GetPersonByID(c, personID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	if person.StatusCheck == false && statusAuth == false {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, web.UnAuthorizedError{})
+		return
+	}
+
+	c.JSON(http.StatusOK, person)
 }
 
 // UpdatePerson

@@ -423,6 +423,9 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
+                },
+                "photo_link": {
+                    "type": "string"
                 }
             }
         },
@@ -569,6 +572,9 @@ const docTemplate = `{
                 },
                 "relative": {
                     "type": "string"
+                },
+                "status_check": {
+                    "type": "boolean"
                 },
                 "surname": {
                     "type": "string"

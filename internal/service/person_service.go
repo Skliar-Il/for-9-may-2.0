@@ -136,8 +136,20 @@ func (p *PersonService) GetPersonByID(ctx *gin.Context, personID uuid.UUID) (*mo
 		localLogger.Error(ctx, "start tx error", zap.Error(err))
 		return nil, web.InternalServerError{}
 	}
-	p.FormRepository.StatusForm(ctx, tx, personID)
-	return nil, nil
+	defer database.RollbackTx(ctx, tx, localLogger)
+
+	person, err := p.PersonRepository.GerPersonByID(ctx, tx, personID)
+	if err != nil {
+		pgError := database.ValidatePgxError(err)
+		if pgError != nil {
+			if pgError.Type == database.TypeNoRows {
+				return nil, web.NotFoundError{Message: "person not found"}
+			}
+		}
+		localLogger.Error(ctx, "get person error", zap.Error(err))
+	}
+
+	return person, nil
 }
 
 func (p *PersonService) ValidatePerson(ctx *gin.Context, id uuid.UUID) error {

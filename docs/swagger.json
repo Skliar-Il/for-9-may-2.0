@@ -415,6 +415,9 @@
             "properties": {
                 "name": {
                     "type": "string"
+                },
+                "photo_link": {
+                    "type": "string"
                 }
             }
         },
@@ -561,6 +564,9 @@
                 },
                 "relative": {
                     "type": "string"
+                },
+                "status_check": {
+                    "type": "boolean"
                 },
                 "surname": {
                     "type": "string"

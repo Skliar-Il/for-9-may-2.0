@@ -7,5 +7,6 @@ type MedalModel struct {
 }
 
 type CreateMedalModel struct {
-	Name string `json:"name"`
+	Name      string `json:"name"`
+	ImageLink string `json:"photo_link"`
 }

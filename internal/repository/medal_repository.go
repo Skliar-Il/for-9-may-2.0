@@ -49,7 +49,7 @@ func (m MedalRepository) CreateMedalPerson(ctx context.Context, tx pgx.Tx, userI
 
 func (m MedalRepository) GetMedals(ctx context.Context, tx pgx.Tx) ([]model.MedalModel, error) {
 	query := `
-		SELECT id, name, photo_link
+		SELECT id, name, COALESCE(photo_link, '')
 		FROM medal
 		`
 	rows, err := tx.Query(ctx, query)
@@ -75,11 +75,11 @@ func (m MedalRepository) GetMedals(ctx context.Context, tx pgx.Tx) ([]model.Meda
 
 func (m MedalRepository) CreateMedal(ctx context.Context, tx pgx.Tx, medal *model.CreateMedalModel) error {
 	query := `
-		INSERT INTO medal(name)
-		VALUES ($1)
+		INSERT INTO medal(name, photo_link)
+		VALUES ($1, $2)
 		`
 
-	_, err := tx.Exec(ctx, query, medal.Name)
+	_, err := tx.Exec(ctx, query, medal.Name, medal.ImageLink)
 	if err != nil {
 		return err
 	}
