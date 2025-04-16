@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"for9may/internal/config"
-	"for9may/internal/model"
+	"for9may/internal/dto"
 	jwtservice "for9may/pkg/jwt"
 	"for9may/pkg/logger"
 	"for9may/resources/web"
@@ -35,7 +35,7 @@ func NewProfileHandler(serviceJwt *jwtservice.ServiceJWT, adminCfg config.AdminC
 // @Accept  json
 // @Produce  json
 // @Security BasicAuth
-// @Success 200 {object} model.ProfileLoginResponse "Authorization OK"
+// @Success 200 {object} dto.ProfileLoginResponseDTO "Authorization OK"
 // @Failure 401 {object} web.ErrorResponse "Authorization error"
 // @Router /profile/login [post]
 func (p *ProfileController) LoginAdmin(c *gin.Context) {
@@ -71,7 +71,7 @@ func (p *ProfileController) LoginAdmin(c *gin.Context) {
 
 		localLogger.Info(c, "push tokens in cookie")
 
-		c.JSON(http.StatusOK, model.ProfileLoginResponse{Message: accessToken})
+		c.JSON(http.StatusOK, dto.ProfileLoginResponseDTO{Message: accessToken})
 	} else {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{Message: web.InvalidLoginPasswordErrorString})
 		return
@@ -84,7 +84,7 @@ func (p *ProfileController) LoginAdmin(c *gin.Context) {
 // @Description Refresh access and refresh tokens for admin
 // @Router /profile/refresh [post]
 // @Produce json
-// @Success 200 {object} model.ProfileLoginResponse
+// @Success 200 {object} dto.ProfileLoginResponseDTO
 // @Failure 401 {object} web.ErrorResponse
 // @Failure 403 {object} web.ErrorResponse
 // @Failure 500 {object} web.ErrorResponse
@@ -149,5 +149,5 @@ func (p *ProfileController) RefreshAdmin(c *gin.Context) {
 
 	localLogger.Info(c, "push tokens in cookie")
 
-	c.JSON(http.StatusOK, model.ProfileLoginResponse{Message: accessToken})
+	c.JSON(http.StatusOK, dto.ProfileLoginResponseDTO{Message: accessToken})
 }

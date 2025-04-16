@@ -1,13 +1,22 @@
 basePath: /api
 definitions:
-  model.CreateMedalModel:
+  dto.CreateMedalDTO:
     properties:
       name:
         type: string
       photo_link:
         type: string
     type: object
-  model.CreatePersonModel:
+  dto.CreateNewPhotoDTO:
+    properties:
+      link:
+        type: string
+      main_status:
+        type: boolean
+      person_id:
+        type: string
+    type: object
+  dto.CreatePersonDTO:
     properties:
       city:
         type: string
@@ -46,19 +55,17 @@ definitions:
     required:
     - contact_email
     - contact_name
-    - contact_patronymic
     - contact_surname
     - contact_telegram
     - history
     - medals
     - name
-    - patronymic
     - rank
     - relative
     - role
     - surname
     type: object
-  model.MedalModel:
+  dto.MedalDTO:
     properties:
       id:
         type: integer
@@ -67,12 +74,12 @@ definitions:
       photo_link:
         type: string
     type: object
-  model.PersonCountModel:
+  dto.PersonCountDTO:
     properties:
       count:
         type: integer
     type: object
-  model.PersonModel:
+  dto.PersonDTO:
     properties:
       city:
         type: string
@@ -90,13 +97,15 @@ definitions:
         type: integer
       date_death:
         type: integer
+      date_published:
+        type: string
       history:
         type: string
       id:
         type: string
       medals:
         items:
-          $ref: '#/definitions/model.MedalModel'
+          $ref: '#/definitions/dto.MedalDTO'
         type: array
       name:
         type: string
@@ -111,7 +120,7 @@ definitions:
       surname:
         type: string
     type: object
-  model.ProfileLoginResponse:
+  dto.ProfileLoginResponseDTO:
     properties:
       message:
         type: string
@@ -152,7 +161,7 @@ paths:
         name: medal
         required: true
         schema:
-          $ref: '#/definitions/model.CreateMedalModel'
+          $ref: '#/definitions/dto.CreateMedalDTO'
       responses: {}
       tags:
       - Medal
@@ -176,7 +185,7 @@ paths:
           schema:
             items:
               items:
-                $ref: '#/definitions/model.PersonModel'
+                $ref: '#/definitions/dto.PersonDTO'
               type: array
             type: array
         "400":
@@ -227,7 +236,7 @@ paths:
         "200":
           description: Successfully retrieved person data
           schema:
-            $ref: '#/definitions/model.PersonModel'
+            $ref: '#/definitions/dto.PersonDTO'
         "400":
           description: Invalid ID format
           schema:
@@ -261,7 +270,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.PersonCountModel'
+            $ref: '#/definitions/dto.PersonCountDTO'
         "401":
           description: Unauthorized
           schema:
@@ -280,12 +289,52 @@ paths:
         name: person
         required: true
         schema:
-          $ref: '#/definitions/model.CreatePersonModel'
+          $ref: '#/definitions/dto.CreatePersonDTO'
       responses:
         "201":
           description: Created
         "422":
           description: Unprocessable Entity
+      tags:
+      - Person
+  /person/file/upload/{id}:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload file to s3 storage, use only .jpg and .png
+      parameters:
+      - description: Image file (jpeg/png)
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: use as main photo (default false)
+        in: query
+        name: main
+        required: true
+        type: boolean
+      - description: person id
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CreateNewPhotoDTO'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "413":
+          description: Request Entity Too Large
+        "500":
+          description: Internal Server Error
+      summary: upload file
       tags:
       - Person
   /person/validate/{id}:
@@ -328,7 +377,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.PersonModel'
+          $ref: '#/definitions/dto.PersonDTO'
       produces:
       - application/json
       responses:
@@ -364,7 +413,7 @@ paths:
         "200":
           description: Authorization OK
           schema:
-            $ref: '#/definitions/model.ProfileLoginResponse'
+            $ref: '#/definitions/dto.ProfileLoginResponseDTO'
         "401":
           description: Authorization error
           schema:
@@ -383,7 +432,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.ProfileLoginResponse'
+            $ref: '#/definitions/dto.ProfileLoginResponseDTO'
         "401":
           description: Unauthorized
           schema:

@@ -3,7 +3,8 @@ package http
 import (
 	"errors"
 	"fmt"
-	"for9may/internal/model"
+	"for9may/internal/config"
+	"for9may/internal/dto"
 	"for9may/internal/service"
 	"for9may/pkg/jwt"
 	jwtservice "for9may/pkg/jwt"
@@ -12,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -20,26 +22,33 @@ type PersonHandler struct {
 	PersonService  *service.PersonService
 	ProfileService *service.ProfileService
 	JWTService     *jwt.ServiceJWT
+	PhotoConfig    config.PhotoConfig
 }
 
 func NewPersonHandler(
 	personService *service.PersonService,
 	profileService *service.ProfileService,
 	jwtService *jwt.ServiceJWT,
+	photoConfig config.PhotoConfig,
 ) *PersonHandler {
-	return &PersonHandler{PersonService: personService, JWTService: jwtService, ProfileService: profileService}
+	return &PersonHandler{
+		PersonService:  personService,
+		JWTService:     jwtService,
+		ProfileService: profileService,
+		PhotoConfig:    photoConfig,
+	}
 }
 
 // NewPerson
 // @Tags Person
 // @Router /person/create [post]
 // @Failure 422
-// @Param person body model.CreatePersonModel true "New Person"
+// @Param person body dto.CreatePersonDTO true "New Person"
 // @Success 201
 func (p *PersonHandler) NewPerson(c *gin.Context) {
 	localLogger := logger.GetLoggerFromCtx(c)
 
-	var person model.CreatePersonModel
+	var person dto.CreatePersonDTO
 	if err := c.ShouldBindJSON(&person); err != nil {
 		localLogger.Info(c, fmt.Sprintf("invalid body: %v", err))
 		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, web.ValidationError{Message: err.Error()})
@@ -63,7 +72,7 @@ func (p *PersonHandler) NewPerson(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param check query bool true "Status check flag" default(true)
-// @Success 200 {array} []model.PersonModel
+// @Success 200 {array} []dto.PersonDTO
 // @Failure 400 {object} web.BadRequestError "Invalid request parameters"
 // @Failure 422
 // @Failure 500 {object} web.InternalServerError "Internal server error"
@@ -169,7 +178,7 @@ func (p *PersonHandler) DeletePerson(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Person's unique identifier (UUID)" format(uuid)
-// @Success 200 {object} model.PersonModel "Successfully retrieved person data"
+// @Success 200 {object} dto.PersonDTO "Successfully retrieved person data"
 // @Failure 400 {object} map[string]string "Invalid ID format"
 // @Failure 404 {object} map[string]string "Person not found"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -222,7 +231,7 @@ func (p *PersonHandler) GetPersonByID(c *gin.Context) {
 // @Tags Person
 // @Accept json
 // @Produce json
-// @Param request body model.PersonModel true "Person data to update"
+// @Param request body dto.PersonDTO true "Person data to update"
 // @Success 204 "No content (successful update with no response body)"
 // @Failure 400 {object} web.ValidationError "Invalid request format"
 // @Failure 401 "Unauthorized"
@@ -234,7 +243,7 @@ func (p *PersonHandler) GetPersonByID(c *gin.Context) {
 func (p *PersonHandler) UpdatePerson(c *gin.Context) {
 	localLogger := logger.GetLoggerFromCtx(c)
 
-	var person model.PersonModel
+	var person dto.PersonDTO
 	if err := c.ShouldBindJSON(&person); err != nil {
 		localLogger.Error(c, fmt.Sprintf("invalid body: %v", err))
 		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, web.ValidationError{Message: err.Error()})
@@ -248,7 +257,7 @@ func (p *PersonHandler) UpdatePerson(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Tags Person
-// @Success 200 {object} model.PersonCountModel
+// @Success 200 {object} dto.PersonCountDTO
 // @Failure 401 {object} web.UnAuthorizedError
 // @Failure 500 {object} web.InternalServerError
 // @Router /person/count [get]
@@ -261,4 +270,79 @@ func (p *PersonHandler) CountPerson(c *gin.Context) {
 	}
 	localLogger.Info(c, "get count unread person")
 	c.JSON(http.StatusOK, personCount)
+}
+
+// UploadFile
+// @Summary upload file
+// @Description Upload file to s3 storage, use only .jpg and .png
+// @Tags Person
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Image file (jpeg/png)"
+// @Param main query boolean true "use as main photo (default false)"
+// @Param id path string true "person id" format(uuid)
+// @Success 201 {object} dto.CreateNewPhotoDTO
+// @Failure 400
+// @Failure 401
+// @Failure 413
+// @Failure 500
+// @Router /person/file/upload/{id} [post]
+func (p *PersonHandler) UploadFile(c *gin.Context) {
+	localLogger := logger.GetLoggerFromCtx(c)
+	mainStatusStr := c.DefaultQuery("main", "false")
+	personIDStr := c.Param("id")
+	file, err := c.FormFile("file")
+	if err != nil {
+		if errors.Is(err, http.ErrMissingFile) {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, web.ValidationError{Message: "fail is to load"})
+			return
+		}
+
+		localLogger.Error(c, "load file error", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, web.InternalServerError{})
+		return
+	}
+
+	mainStatus, err := strconv.ParseBool(mainStatusStr)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, web.ValidationError{Message: "status must be boolean"})
+		return
+	}
+
+	personID, err := uuid.Parse(personIDStr)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, "id must be uuid v4")
+		return
+	}
+
+	openFile, err := file.Open()
+	if err != nil {
+		localLogger.Error(c, "open file error", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, web.InternalServerError{})
+		return
+	}
+	defer func() {
+		if err := openFile.Close(); err != nil {
+			localLogger.Error(c, "close file error", zap.Error(err))
+			c.AbortWithStatusJSON(http.StatusInternalServerError, web.InternalServerError{})
+		}
+	}()
+
+	fileBytes, err := io.ReadAll(openFile)
+	if err != nil {
+		localLogger.Error(c, "get file bytes error", zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, web.InternalServerError{})
+		return
+	}
+
+	var personPhotoDTO dto.CreateNewPhotoDTO
+	personPhotoDTO.MainStatus = mainStatus
+	personPhotoDTO.PersonID = personID
+	err = p.PersonService.UploadPersonPhoto(c, &personPhotoDTO, fileBytes, p.PhotoConfig.MaxCount)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, personPhotoDTO)
 }

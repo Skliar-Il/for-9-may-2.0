@@ -7,10 +7,12 @@ import (
 	"for9may/internal/service"
 	jwtservice "for9may/pkg/jwt"
 	"for9may/pkg/logger"
+	"for9may/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"log"
 )
 
 func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.ServiceJWT, dbPool *pgxpool.Pool) {
@@ -27,6 +29,13 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 	medalRepository := repository.NewMedalRepository()
 	formRepository := repository.NewFormRepository()
 	ownerRepository := repository.NewOwnerRepository()
+	photoRepository := repository.NewPhotoRepository()
+
+	storageWorker, err := storage.NewStorage(cfg.Storage)
+	if err != nil {
+		log.Fatalf("get stirage error: %v", err)
+		return
+	}
 
 	personService := service.NewPersonService(
 		dbPool,
@@ -34,11 +43,13 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 		medalRepository,
 		formRepository,
 		ownerRepository,
+		photoRepository,
+		storageWorker,
 	)
 	profileService := service.NewProfileService(cfg.Admin, jwtService)
 	medalService := service.NewMedalService(dbPool, medalRepository)
 
-	personController := NewPersonHandler(personService, profileService, jwtService)
+	personController := NewPersonHandler(personService, profileService, jwtService, cfg.PhotoConfig)
 	profileController := NewProfileHandler(jwtService, cfg.Admin)
 	medalController := NewMedalHandler(medalService)
 
@@ -57,6 +68,7 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 		personGroup.GET("/:id", personController.GetPersonByID)
 		personGroup.PUT("", personController.UpdatePerson)
 		personGroup.GET("/count", personController.CountPerson)
+		personGroup.POST("/file/upload/:id", personController.UploadFile)
 	}
 
 	medalGroup := api.Group("/medal")

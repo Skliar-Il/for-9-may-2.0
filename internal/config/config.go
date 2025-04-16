@@ -3,6 +3,7 @@ package config
 import (
 	"for9may/pkg/database"
 	"for9may/pkg/redis"
+	"for9may/pkg/storage"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 )
@@ -17,11 +18,17 @@ type AdminCfg struct {
 	Login    string `env:"ADMIN_LOGIN"`
 }
 
+type PhotoConfig struct {
+	MaxCount int `env:"PHOTO_MAX_COUNT"`
+}
+
 type Config struct {
-	Server   ServerCfg       `env:"SERVER"`
-	Admin    AdminCfg        `env:"ADMIN"`
-	DataBase database.Config `env:"POSTGRES"`
-	Redis    redis.Config    `env:"REDIS"`
+	Server      ServerCfg       `env:"SERVER"`
+	Admin       AdminCfg        `env:"ADMIN"`
+	DataBase    database.Config `env:"POSTGRES"`
+	Redis       redis.Config    `env:"REDIS"`
+	Storage     storage.Config  `env:"AWS"`
+	PhotoConfig PhotoConfig     `env:"PHOTO"`
 }
 
 func New() (*Config, error) {

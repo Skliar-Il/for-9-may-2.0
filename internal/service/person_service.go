@@ -1,10 +1,12 @@
 package service
 
 import (
-	"for9may/internal/model"
+	"fmt"
+	"for9may/internal/dto"
 	"for9may/internal/repository"
 	"for9may/pkg/database"
 	"for9may/pkg/logger"
+	"for9may/pkg/storage"
 	"for9may/resources/web"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -18,6 +20,8 @@ type PersonService struct {
 	MedalRepository  repository.MedalRepositoryInterface
 	FormRepository   repository.FormRepositoryInterface
 	OwnerRepository  repository.OwnerRepositoryInterface
+	PhotoRepository  repository.PhotoRepositoryInterface
+	Storage          storage.InterfaceStorage
 }
 
 func NewPersonService(
@@ -26,6 +30,8 @@ func NewPersonService(
 	medalRepository repository.MedalRepositoryInterface,
 	formRepository repository.FormRepositoryInterface,
 	ownerRepository repository.OwnerRepositoryInterface,
+	photoRepository repository.PhotoRepositoryInterface,
+	storageService storage.InterfaceStorage,
 ) *PersonService {
 	return &PersonService{
 		DBPool:           dbPool,
@@ -33,10 +39,12 @@ func NewPersonService(
 		MedalRepository:  medalRepository,
 		FormRepository:   formRepository,
 		OwnerRepository:  ownerRepository,
+		PhotoRepository:  photoRepository,
+		Storage:          storageService,
 	}
 }
 
-func (p *PersonService) CreatePeron(ctx *gin.Context, person *model.CreatePersonModel) (*uuid.UUID, error) {
+func (p *PersonService) CreatePeron(ctx *gin.Context, person *dto.CreatePersonDTO) (*uuid.UUID, error) {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := p.DBPool.Begin(ctx)
 	if err != nil {
@@ -95,7 +103,7 @@ func (p *PersonService) CreatePeron(ctx *gin.Context, person *model.CreatePerson
 	return personUUID, nil
 }
 
-func (p *PersonService) GetPersons(ctx *gin.Context, check bool) ([]model.PersonModel, error) {
+func (p *PersonService) GetPersons(ctx *gin.Context, check bool) ([]dto.PersonDTO, error) {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := p.DBPool.Begin(ctx)
 	if err != nil {
@@ -110,13 +118,13 @@ func (p *PersonService) GetPersons(ctx *gin.Context, check bool) ([]model.Person
 		return nil, web.InternalServerError{}
 	}
 	if persons == nil {
-		persons = []model.PersonModel{}
+		persons = []dto.PersonDTO{}
 	}
 
 	return persons, nil
 }
 
-func (p *PersonService) CountPerson(ctx *gin.Context) (*model.PersonCountModel, error) {
+func (p *PersonService) CountPerson(ctx *gin.Context) (*dto.PersonCountDTO, error) {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := p.DBPool.Begin(ctx)
 	if err != nil {
@@ -133,7 +141,7 @@ func (p *PersonService) CountPerson(ctx *gin.Context) (*model.PersonCountModel, 
 	return personCount, nil
 }
 
-func (p *PersonService) GetPersonByID(ctx *gin.Context, personID uuid.UUID) (*model.PersonModel, error) {
+func (p *PersonService) GetPersonByID(ctx *gin.Context, personID uuid.UUID) (*dto.PersonDTO, error) {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := p.DBPool.Begin(ctx)
 	if err != nil {
@@ -199,6 +207,57 @@ func (p *PersonService) DeletePerson(ctx *gin.Context, id uuid.UUID) error {
 
 	if err := tx.Commit(ctx); err != nil {
 		localLogger.Error(ctx, "commit error", zap.Error(err))
+	}
+
+	return nil
+}
+
+func (p *PersonService) UploadPersonPhoto(
+	ctx *gin.Context,
+	photo *dto.CreateNewPhotoDTO,
+	file []byte,
+	countOK int,
+) error {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := p.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "begin tx error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	defer database.RollbackTx(ctx, tx, localLogger)
+
+	status, err := p.PhotoRepository.CheckCount(ctx, tx, countOK, photo.PersonID)
+	if err != nil {
+		localLogger.Error(ctx, "check count photo error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+
+	if status == false {
+		return web.BadRequestError{Message: fmt.Sprintf("to many photo, max: %d", countOK)}
+	}
+
+	if photo.MainStatus == true {
+		mainStatusExist, err := p.PhotoRepository.CheckMainStatus(ctx, tx, photo.PersonID)
+		if err != nil {
+			localLogger.Error(ctx, "check main status error", zap.Error(err))
+			return web.InternalServerError{}
+		}
+		if mainStatusExist == true {
+			return web.BadRequestError{Message: "main photo already exist"}
+		}
+	}
+
+	link, err := p.Storage.LoadJPG(file)
+	if err != nil {
+		localLogger.Error(ctx, "failed load photo in storage", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	photo.Link = link
+
+	err = p.PhotoRepository.CreatePhoto(ctx, tx, photo)
+	if err != nil {
+		localLogger.Error(ctx, "failed add photo data in database", zap.Error(err))
+		return web.InternalServerError{}
 	}
 
 	return nil

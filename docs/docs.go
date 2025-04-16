@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.CreateMedalModel"
+                            "$ref": "#/definitions/dto.CreateMedalDTO"
                         }
                     }
                 ],
@@ -73,7 +73,7 @@ const docTemplate = `{
                             "items": {
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/model.PersonModel"
+                                    "$ref": "#/definitions/dto.PersonDTO"
                                 }
                             }
                         }
@@ -111,7 +111,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.PersonCountModel"
+                            "$ref": "#/definitions/dto.PersonCountDTO"
                         }
                     },
                     "401": {
@@ -141,7 +141,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.CreatePersonModel"
+                            "$ref": "#/definitions/dto.CreatePersonDTO"
                         }
                     }
                 ],
@@ -151,6 +151,65 @@ const docTemplate = `{
                     },
                     "422": {
                         "description": "Unprocessable Entity"
+                    }
+                }
+            }
+        },
+        "/person/file/upload/{id}": {
+            "post": {
+                "description": "Upload file to s3 storage, use only .jpg and .png",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Person"
+                ],
+                "summary": "upload file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image file (jpeg/png)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "use as main photo (default false)",
+                        "name": "main",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "person id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateNewPhotoDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -231,7 +290,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successfully retrieved person data",
                         "schema": {
-                            "$ref": "#/definitions/model.PersonModel"
+                            "$ref": "#/definitions/dto.PersonDTO"
                         }
                     },
                     "400": {
@@ -309,7 +368,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.PersonModel"
+                            "$ref": "#/definitions/dto.PersonDTO"
                         }
                     }
                 ],
@@ -366,7 +425,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Authorization OK",
                         "schema": {
-                            "$ref": "#/definitions/model.ProfileLoginResponse"
+                            "$ref": "#/definitions/dto.ProfileLoginResponseDTO"
                         }
                     },
                     "401": {
@@ -392,7 +451,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.ProfileLoginResponse"
+                            "$ref": "#/definitions/dto.ProfileLoginResponseDTO"
                         }
                     },
                     "401": {
@@ -418,7 +477,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "model.CreateMedalModel": {
+        "dto.CreateMedalDTO": {
             "type": "object",
             "properties": {
                 "name": {
@@ -429,18 +488,30 @@ const docTemplate = `{
                 }
             }
         },
-        "model.CreatePersonModel": {
+        "dto.CreateNewPhotoDTO": {
+            "type": "object",
+            "properties": {
+                "link": {
+                    "type": "string"
+                },
+                "main_status": {
+                    "type": "boolean"
+                },
+                "person_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreatePersonDTO": {
             "type": "object",
             "required": [
                 "contact_email",
                 "contact_name",
-                "contact_patronymic",
                 "contact_surname",
                 "contact_telegram",
                 "history",
                 "medals",
                 "name",
-                "patronymic",
                 "rank",
                 "relative",
                 "role",
@@ -500,7 +571,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.MedalModel": {
+        "dto.MedalDTO": {
             "type": "object",
             "properties": {
                 "id": {
@@ -514,7 +585,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.PersonCountModel": {
+        "dto.PersonCountDTO": {
             "type": "object",
             "properties": {
                 "count": {
@@ -522,7 +593,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.PersonModel": {
+        "dto.PersonDTO": {
             "type": "object",
             "properties": {
                 "city": {
@@ -549,6 +620,9 @@ const docTemplate = `{
                 "date_death": {
                     "type": "integer"
                 },
+                "date_published": {
+                    "type": "string"
+                },
                 "history": {
                     "type": "string"
                 },
@@ -558,7 +632,7 @@ const docTemplate = `{
                 "medals": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.MedalModel"
+                        "$ref": "#/definitions/dto.MedalDTO"
                     }
                 },
                 "name": {
@@ -581,7 +655,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.ProfileLoginResponse": {
+        "dto.ProfileLoginResponseDTO": {
             "type": "object",
             "properties": {
                 "message": {

@@ -4,17 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"for9may/internal/model"
+	"for9may/internal/dto"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
 type PersonRepositoryInterface interface {
-	CreatePerson(ctx context.Context, tx pgx.Tx, person *model.CreatePersonModel) (*uuid.UUID, error)
-	GetPersons(ctx context.Context, tx pgx.Tx, check bool) ([]model.PersonModel, error)
+	CreatePerson(ctx context.Context, tx pgx.Tx, person *dto.CreatePersonDTO) (*uuid.UUID, error)
+	GetPersons(ctx context.Context, tx pgx.Tx, check bool) ([]dto.PersonDTO, error)
 	Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
-	CountUnread(ctx context.Context, tx pgx.Tx) (*model.PersonCountModel, error)
-	GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*model.PersonModel, error)
+	CountUnread(ctx context.Context, tx pgx.Tx) (*dto.PersonCountDTO, error)
+	GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*dto.PersonDTO, error)
 	Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
 }
 
@@ -27,7 +27,7 @@ func NewPersonRepository() *PersonRepository {
 func (PersonRepository) CreatePerson(
 	ctx context.Context,
 	tx pgx.Tx,
-	person *model.CreatePersonModel,
+	person *dto.CreatePersonDTO,
 ) (*uuid.UUID, error) {
 	query := `
 	INSERT INTO person (
@@ -57,7 +57,7 @@ func (PersonRepository) CreatePerson(
 	return &personID, nil
 }
 
-func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) ([]model.PersonModel, error) {
+func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) ([]dto.PersonDTO, error) {
 	query := `
 		SELECT *
 		FROM all_person_fields_view
@@ -70,10 +70,10 @@ func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) (
 	}
 	defer rows.Close()
 
-	var persons []model.PersonModel
+	var persons []dto.PersonDTO
 	if rows != nil {
 		for rows.Next() {
-			var p model.PersonModel
+			var p dto.PersonDTO
 			var medalsJSON []byte
 
 			err := rows.Scan(
@@ -117,13 +117,13 @@ func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) (
 	return persons, nil
 }
 
-func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*model.PersonModel, error) {
+func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*dto.PersonDTO, error) {
 	query := `
 	SELECT *
 	FROM all_person_fields_view
 	WHERE id = $1
 	`
-	var p model.PersonModel
+	var p dto.PersonDTO
 	var medalsJSON []byte
 	err := tx.QueryRow(ctx, query, personID).Scan(
 		&p.ID,
@@ -185,14 +185,14 @@ func (PersonRepository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) err
 	return nil
 }
 
-func (PersonRepository) CountUnread(ctx context.Context, tx pgx.Tx) (*model.PersonCountModel, error) {
+func (PersonRepository) CountUnread(ctx context.Context, tx pgx.Tx) (*dto.PersonCountDTO, error) {
 	query := `
 		SELECT COUNT(*) AS count
 		FROM person p
 		LEFT JOIN form f ON f.person_id = p.id
 		WHERE f.status_check = false
 		`
-	var personCount model.PersonCountModel
+	var personCount dto.PersonCountDTO
 	if err := tx.QueryRow(ctx, query).Scan(&personCount.Count); err != nil {
 		return nil, err
 	}

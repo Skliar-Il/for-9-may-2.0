@@ -1,12 +1,12 @@
-package model
+package dto
 
-type MedalModel struct {
+type MedalDTO struct {
 	ID       int    `json:"id"`
 	Name     string `json:"name"`
 	ImageUrl string `json:"photo_link"`
 }
 
-type CreateMedalModel struct {
+type CreateMedalDTO struct {
 	Name      string `json:"name"`
 	ImageLink string `json:"photo_link"`
 }

@@ -2,13 +2,13 @@ package repository
 
 import (
 	"context"
-	"for9may/internal/model"
+	"for9may/internal/dto"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
 type OwnerRepositoryInterface interface {
-	CreateOwner(ctx context.Context, tx pgx.Tx, data *model.CreatePersonModel, formID *uuid.UUID) error
+	CreateOwner(ctx context.Context, tx pgx.Tx, data *dto.CreatePersonDTO, formID *uuid.UUID) error
 }
 
 type OwnerRepository struct {
@@ -21,7 +21,7 @@ func NewOwnerRepository() *OwnerRepository {
 func (o OwnerRepository) CreateOwner(
 	ctx context.Context,
 	tx pgx.Tx,
-	data *model.CreatePersonModel,
+	data *dto.CreatePersonDTO,
 	formID *uuid.UUID,
 ) error {
 	query := `

@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"for9may/internal/model"
+	"for9may/internal/dto"
 	"for9may/internal/repository"
 	"for9may/pkg/database"
 	"for9may/pkg/logger"
@@ -24,7 +24,7 @@ func NewMedalService(dbPoll *pgxpool.Pool, medalRepository repository.MedalRepos
 	}
 }
 
-func (m *MedalService) GetMedals(ctx *gin.Context) ([]model.MedalModel, error) {
+func (m *MedalService) GetMedals(ctx *gin.Context) ([]dto.MedalDTO, error) {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := m.DBPool.Begin(ctx)
 	if err != nil {
@@ -38,13 +38,13 @@ func (m *MedalService) GetMedals(ctx *gin.Context) ([]model.MedalModel, error) {
 		return nil, web.InternalServerError{}
 	}
 	if medals == nil {
-		medals = []model.MedalModel{}
+		medals = []dto.MedalDTO{}
 	}
 
 	return medals, nil
 }
 
-func (m *MedalService) CreateMedal(ctx *gin.Context, medal *model.CreateMedalModel) (int, error) {
+func (m *MedalService) CreateMedal(ctx *gin.Context, medal *dto.CreateMedalDTO) (int, error) {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := m.DBPool.Begin(ctx)
 	if err != nil {

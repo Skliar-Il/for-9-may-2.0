@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
-	"for9may/internal/model"
+	"for9may/internal/dto"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
@@ -11,8 +11,8 @@ import (
 type MedalRepositoryInterface interface {
 	CheckMedals(ctx context.Context, tx pgx.Tx, medals []int) (*bool, error)
 	CreateMedalPerson(ctx context.Context, tx pgx.Tx, userID *uuid.UUID, medals []int) error
-	GetMedals(ctx context.Context, tx pgx.Tx) ([]model.MedalModel, error)
-	CreateMedal(ctx context.Context, tx pgx.Tx, medal *model.CreateMedalModel) (int, error)
+	GetMedals(ctx context.Context, tx pgx.Tx) ([]dto.MedalDTO, error)
+	CreateMedal(ctx context.Context, tx pgx.Tx, medal *dto.CreateMedalDTO) (int, error)
 }
 type MedalRepository struct{}
 
@@ -47,7 +47,7 @@ func (m MedalRepository) CreateMedalPerson(ctx context.Context, tx pgx.Tx, userI
 	return nil
 }
 
-func (m MedalRepository) GetMedals(ctx context.Context, tx pgx.Tx) ([]model.MedalModel, error) {
+func (m MedalRepository) GetMedals(ctx context.Context, tx pgx.Tx) ([]dto.MedalDTO, error) {
 	query := `
 		SELECT id, name, COALESCE(photo_link, '')
 		FROM medal
@@ -57,9 +57,9 @@ func (m MedalRepository) GetMedals(ctx context.Context, tx pgx.Tx) ([]model.Meda
 		return nil, fmt.Errorf("query error(select medals): %w", err)
 	}
 
-	var medals []model.MedalModel
+	var medals []dto.MedalDTO
 	for rows.Next() {
-		var medal model.MedalModel
+		var medal dto.MedalDTO
 
 		if err := rows.Scan(
 			&medal.ID,
@@ -73,7 +73,7 @@ func (m MedalRepository) GetMedals(ctx context.Context, tx pgx.Tx) ([]model.Meda
 	return medals, nil
 }
 
-func (m MedalRepository) CreateMedal(ctx context.Context, tx pgx.Tx, medal *model.CreateMedalModel) (int, error) {
+func (m MedalRepository) CreateMedal(ctx context.Context, tx pgx.Tx, medal *dto.CreateMedalDTO) (int, error) {
 	query := `
 		INSERT INTO medal(name, photo_link)
 		VALUES ($1, $2)
