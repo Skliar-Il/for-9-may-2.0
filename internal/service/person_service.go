@@ -6,7 +6,6 @@ import (
 	"for9may/internal/repository"
 	"for9may/pkg/database"
 	"for9may/pkg/logger"
-	"for9may/pkg/storage"
 	"for9may/resources/web"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -21,7 +20,7 @@ type PersonService struct {
 	FormRepository   repository.FormRepositoryInterface
 	OwnerRepository  repository.OwnerRepositoryInterface
 	PhotoRepository  repository.PhotoRepositoryInterface
-	Storage          storage.InterfaceStorage
+	//Storage          *sdk.Storage
 }
 
 func NewPersonService(
@@ -31,7 +30,7 @@ func NewPersonService(
 	formRepository repository.FormRepositoryInterface,
 	ownerRepository repository.OwnerRepositoryInterface,
 	photoRepository repository.PhotoRepositoryInterface,
-	storageService storage.InterfaceStorage,
+	// storageService *sdk.Storage,
 ) *PersonService {
 	return &PersonService{
 		DBPool:           dbPool,
@@ -40,7 +39,7 @@ func NewPersonService(
 		FormRepository:   formRepository,
 		OwnerRepository:  ownerRepository,
 		PhotoRepository:  photoRepository,
-		Storage:          storageService,
+		//Storage:          storageService,
 	}
 }
 
@@ -247,12 +246,12 @@ func (p *PersonService) UploadPersonPhoto(
 		}
 	}
 
-	link, err := p.Storage.LoadJPG(file)
-	if err != nil {
-		localLogger.Error(ctx, "failed load photo in storage", zap.Error(err))
-		return web.InternalServerError{}
-	}
-	photo.Link = link
+	//link, err := p.Storage.LoadJPG(file)
+	//if err != nil {
+	//	localLogger.Error(ctx, "failed load photo in storage", zap.Error(err))
+	//	return web.InternalServerError{}
+	//}
+	//photo.Link = link
 
 	err = p.PhotoRepository.CreatePhoto(ctx, tx, photo)
 	if err != nil {

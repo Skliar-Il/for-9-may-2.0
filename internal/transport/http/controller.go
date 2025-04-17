@@ -12,7 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"log"
 )
 
 func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.ServiceJWT, dbPool *pgxpool.Pool) {
@@ -20,6 +19,7 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 
 	engine.Use(logger.Middleware(mainLogger))
 	engine.Use(gin.Recovery())
+	engine.MaxMultipartMemory = 100 << 20
 
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -31,11 +31,7 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 	ownerRepository := repository.NewOwnerRepository()
 	photoRepository := repository.NewPhotoRepository()
 
-	storageWorker, err := storage.NewStorage(cfg.Storage)
-	if err != nil {
-		log.Fatalf("get stirage error: %v", err)
-		return
-	}
+	storage.NewSDK()
 
 	personService := service.NewPersonService(
 		dbPool,
@@ -44,7 +40,7 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 		formRepository,
 		ownerRepository,
 		photoRepository,
-		storageWorker,
+		//storageWorker,
 	)
 	profileService := service.NewProfileService(cfg.Admin, jwtService)
 	medalService := service.NewMedalService(dbPool, medalRepository)

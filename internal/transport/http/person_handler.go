@@ -324,7 +324,6 @@ func (p *PersonHandler) UploadFile(c *gin.Context) {
 	defer func() {
 		if err := openFile.Close(); err != nil {
 			localLogger.Error(c, "close file error", zap.Error(err))
-			c.AbortWithStatusJSON(http.StatusInternalServerError, web.InternalServerError{})
 		}
 	}()
 
