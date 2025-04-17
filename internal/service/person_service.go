@@ -11,6 +11,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
+	"mime/multipart"
+	"path/filepath"
 )
 
 type PersonService struct {
@@ -20,7 +22,6 @@ type PersonService struct {
 	FormRepository   repository.FormRepositoryInterface
 	OwnerRepository  repository.OwnerRepositoryInterface
 	PhotoRepository  repository.PhotoRepositoryInterface
-	//Storage          *sdk.Storage
 }
 
 func NewPersonService(
@@ -30,7 +31,6 @@ func NewPersonService(
 	formRepository repository.FormRepositoryInterface,
 	ownerRepository repository.OwnerRepositoryInterface,
 	photoRepository repository.PhotoRepositoryInterface,
-	// storageService *sdk.Storage,
 ) *PersonService {
 	return &PersonService{
 		DBPool:           dbPool,
@@ -39,7 +39,6 @@ func NewPersonService(
 		FormRepository:   formRepository,
 		OwnerRepository:  ownerRepository,
 		PhotoRepository:  photoRepository,
-		//Storage:          storageService,
 	}
 }
 
@@ -214,8 +213,8 @@ func (p *PersonService) DeletePerson(ctx *gin.Context, id uuid.UUID) error {
 func (p *PersonService) UploadPersonPhoto(
 	ctx *gin.Context,
 	photo *dto.CreateNewPhotoDTO,
-	file []byte,
 	countOK int,
+	file *multipart.FileHeader,
 ) error {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := p.DBPool.Begin(ctx)
@@ -246,16 +245,23 @@ func (p *PersonService) UploadPersonPhoto(
 		}
 	}
 
-	//link, err := p.Storage.LoadJPG(file)
-	//if err != nil {
-	//	localLogger.Error(ctx, "failed load photo in storage", zap.Error(err))
-	//	return web.InternalServerError{}
-	//}
-	//photo.Link = link
+	fileName := uuid.New()
+	link := fmt.Sprintf("/files/%s.jpg", fileName.String())
+	photo.Link = link
+	savePath := filepath.Join("upload", fmt.Sprintf("%s.jpg", fileName.String()))
+	if err := ctx.SaveUploadedFile(file, savePath); err != nil {
+		localLogger.Error(ctx, "save file error", zap.Error(err))
+		return web.InternalServerError{}
+	}
 
 	err = p.PhotoRepository.CreatePhoto(ctx, tx, photo)
 	if err != nil {
 		localLogger.Error(ctx, "failed add photo data in database", zap.Error(err))
+		return web.InternalServerError{}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		localLogger.Error(ctx, "commit error", zap.Error(err))
 		return web.InternalServerError{}
 	}
 

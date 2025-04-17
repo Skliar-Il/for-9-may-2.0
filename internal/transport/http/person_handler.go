@@ -13,7 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"io"
 	"net/http"
 	"strconv"
 )
@@ -315,29 +314,10 @@ func (p *PersonHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	openFile, err := file.Open()
-	if err != nil {
-		localLogger.Error(c, "open file error", zap.Error(err))
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.InternalServerError{})
-		return
-	}
-	defer func() {
-		if err := openFile.Close(); err != nil {
-			localLogger.Error(c, "close file error", zap.Error(err))
-		}
-	}()
-
-	fileBytes, err := io.ReadAll(openFile)
-	if err != nil {
-		localLogger.Error(c, "get file bytes error", zap.Error(err))
-		c.AbortWithStatusJSON(http.StatusInternalServerError, web.InternalServerError{})
-		return
-	}
-
 	var personPhotoDTO dto.CreateNewPhotoDTO
 	personPhotoDTO.MainStatus = mainStatus
 	personPhotoDTO.PersonID = personID
-	err = p.PersonService.UploadPersonPhoto(c, &personPhotoDTO, fileBytes, p.PhotoConfig.MaxCount)
+	err = p.PersonService.UploadPersonPhoto(c, &personPhotoDTO, p.PhotoConfig.MaxCount, file)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return

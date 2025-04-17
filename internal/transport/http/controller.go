@@ -7,7 +7,6 @@ import (
 	"for9may/internal/service"
 	jwtservice "for9may/pkg/jwt"
 	"for9may/pkg/logger"
-	"for9may/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	swaggerFiles "github.com/swaggo/files"
@@ -20,6 +19,7 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 	engine.Use(logger.Middleware(mainLogger))
 	engine.Use(gin.Recovery())
 	engine.MaxMultipartMemory = 100 << 20
+	engine.Static("/files", "./upload")
 
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -30,8 +30,6 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 	formRepository := repository.NewFormRepository()
 	ownerRepository := repository.NewOwnerRepository()
 	photoRepository := repository.NewPhotoRepository()
-
-	storage.NewSDK()
 
 	personService := service.NewPersonService(
 		dbPool,
