@@ -54,6 +54,25 @@ CREATE TABLE IF NOT EXISTS medal_person (
     UNIQUE (person_id, medal_id)
 );
 
+CREATE OR REPLACE FUNCTION check_main_photo_before_insert()
+    RETURNS TRIGGER AS $$
+BEGIN
+    -- Если пытаемся добавить НЕ главное фото, но у пользователя ещё нет главного фото
+    IF NEW.main_status = FALSE AND NOT EXISTS (
+        SELECT 1 FROM person_photo
+        WHERE person_id = NEW.person_id AND main_status = TRUE
+    ) THEN
+        RAISE EXCEPTION 'Cannot add non-main photo: person must have at least one main photo first';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_non_main_photo_without_main
+    BEFORE INSERT ON person_photo
+    FOR EACH ROW
+EXECUTE FUNCTION check_main_photo_before_insert();
 
 CREATE OR REPLACE VIEW all_person_fields_view AS
 SELECT
@@ -96,3 +115,4 @@ SELECT
     FROM person p
     LEFT JOIN form f ON f.person_id = p.id
     LEFT JOIN owner o ON o.form_id = f.id;
+
