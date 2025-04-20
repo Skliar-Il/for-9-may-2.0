@@ -14,7 +14,6 @@ type CreatePersonDTO struct {
 	City              string `json:"city"`
 	History           string `json:"history" binding:"required"`
 	Rank              string `json:"rank" binding:"required"`
-	Role              bool   `json:"role" binding:"required"`
 	ContactEmail      string `json:"contact_email" binding:"required"`
 	ContactName       string `json:"contact_name" binding:"required"`
 	ContactSurname    string `json:"contact_surname" binding:"required"`
