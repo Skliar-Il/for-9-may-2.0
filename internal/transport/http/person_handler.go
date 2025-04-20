@@ -339,4 +339,28 @@ func (p *PersonHandler) UploadFile(c *gin.Context) {
 	c.JSON(http.StatusCreated, personPhotoDTO)
 }
 
-func (p *PersonHandler) DeletePhoto(c *gin.Context) {}
+// DeleteFile
+// @Summary delete photo
+// @Description delete person photo
+// @Tags Person
+// @Param id path int true "photo id"
+// @Success 204
+// @Failure 400
+// @Failure 401
+// @Failure 413
+// @Failure 500
+// @Router /person/file/delete/{id} [delete]
+func (p *PersonHandler) DeleteFile(c *gin.Context) {
+	photoIDStr := c.Param("id")
+	photoID, err := strconv.ParseInt(photoIDStr, 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, "path param id mast be int")
+		return
+	}
+	if err := p.PersonService.DeletePersonPhoto(c, int(photoID)); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}

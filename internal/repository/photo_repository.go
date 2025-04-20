@@ -11,7 +11,7 @@ type PhotoRepositoryInterface interface {
 	CheckMainStatus(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (bool, error)
 	CheckCount(ctx context.Context, tx pgx.Tx, countOK int, personID uuid.UUID) (bool, error)
 	CreatePhoto(ctx context.Context, tx pgx.Tx, photo *dto.CreatePhotoDTO) error
-	DeletePhoto(ctx context.Context, tx pgx.Tx, userID uuid.UUID, photoID int) error
+	DeletePhoto(ctx context.Context, tx pgx.Tx, photoID int) error
 }
 
 type PhotoRepository struct {
@@ -70,12 +70,12 @@ func (PhotoRepository) CreatePhoto(ctx context.Context, tx pgx.Tx, photo *dto.Cr
 	return nil
 }
 
-func (PhotoRepository) DeletePhoto(ctx context.Context, tx pgx.Tx, userID uuid.UUID, photoID int) error {
+func (PhotoRepository) DeletePhoto(ctx context.Context, tx pgx.Tx, photoID int) error {
 	query := `
 	DELETE FROM person_photo
-	WHERE person_id = $1 and id = $2
+	WHERE id = $1
 	`
-	_, err := tx.Exec(ctx, query, userID, photoID)
+	_, err := tx.Exec(ctx, query, photoID)
 	if err != nil {
 		return err
 	}

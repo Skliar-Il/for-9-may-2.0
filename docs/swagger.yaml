@@ -396,6 +396,29 @@ paths:
           description: Unprocessable Entity
       tags:
       - Person
+  /person/file/delete/{id}:
+    delete:
+      description: delete person photo
+      parameters:
+      - description: photo id
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "413":
+          description: Request Entity Too Large
+        "500":
+          description: Internal Server Error
+      summary: delete photo
+      tags:
+      - Person
   /person/file/upload/{id}:
     post:
       consumes:

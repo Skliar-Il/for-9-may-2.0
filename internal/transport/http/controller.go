@@ -62,7 +62,7 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 		personGroup.PUT("", personController.UpdatePerson)
 		personGroup.GET("/count", personController.CountPerson)
 		personGroup.POST("/file/upload/:id", personController.UploadFile)
-		personGroup.DELETE("/file/delete", personController.DeletePhoto)
+		personGroup.DELETE("/file/delete/:id", personController.DeleteFile)
 	}
 
 	medalGroup := api.Group("/medal")
