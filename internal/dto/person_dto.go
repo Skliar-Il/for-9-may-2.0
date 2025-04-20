@@ -1,6 +1,9 @@
 package dto
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type CreatePersonDTO struct {
 	Name              string `json:"name" binding:"required"`
@@ -46,4 +49,9 @@ type PersonDTO struct {
 
 type PersonCountDTO struct {
 	Count int `json:"count"`
+}
+
+type UpdatePersonDTO struct {
+	ID uuid.UUID `json:"id"`
+	CreatePersonDTO
 }

@@ -94,6 +94,59 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "description": "Updates existing person's data by ID with provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Person"
+                ],
+                "summary": "Update person information",
+                "parameters": [
+                    {
+                        "description": "Person data to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdatePersonDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content (successful update with no response body)"
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/web.ValidationError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Person not found"
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/web.ValidationError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
             }
         },
         "/person/count": {
@@ -196,7 +249,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateNewPhotoDTO"
+                            "$ref": "#/definitions/dto.CreatePhotoDTO"
                         }
                     },
                     "400": {
@@ -348,61 +401,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/persons/{id}": {
-            "put": {
-                "description": "Updates existing person's data by ID with provided information",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Person"
-                ],
-                "summary": "Update person information",
-                "parameters": [
-                    {
-                        "description": "Person data to update",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.PersonDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No content (successful update with no response body)"
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/web.ValidationError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "Person not found"
-                    },
-                    "422": {
-                        "description": "Validation error",
-                        "schema": {
-                            "$ref": "#/definitions/web.ValidationError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
         "/profile/login": {
             "post": {
                 "security": [
@@ -488,20 +486,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateNewPhotoDTO": {
-            "type": "object",
-            "properties": {
-                "link": {
-                    "type": "string"
-                },
-                "main_status": {
-                    "type": "boolean"
-                },
-                "person_id": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.CreatePersonDTO": {
             "type": "object",
             "required": [
@@ -567,6 +551,20 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "surname": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreatePhotoDTO": {
+            "type": "object",
+            "properties": {
+                "link": {
+                    "type": "string"
+                },
+                "main_status": {
+                    "type": "boolean"
+                },
+                "person_id": {
                     "type": "string"
                 }
             }
@@ -645,7 +643,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "photo": {
-                    "$ref": "#/definitions/dto.PhotoDTO"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.PhotoDTO"
+                    }
                 },
                 "rank": {
                     "type": "string"
@@ -676,6 +677,78 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdatePersonDTO": {
+            "type": "object",
+            "required": [
+                "contact_email",
+                "contact_name",
+                "contact_surname",
+                "contact_telegram",
+                "history",
+                "medals",
+                "name",
+                "rank",
+                "relative",
+                "role",
+                "surname"
+            ],
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "contact_email": {
+                    "type": "string"
+                },
+                "contact_name": {
+                    "type": "string"
+                },
+                "contact_patronymic": {
+                    "type": "string"
+                },
+                "contact_surname": {
+                    "type": "string"
+                },
+                "contact_telegram": {
+                    "type": "string"
+                },
+                "date_birth": {
+                    "type": "integer"
+                },
+                "date_death": {
+                    "type": "integer"
+                },
+                "history": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "medals": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "patronymic": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "relative": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "boolean"
+                },
+                "surname": {
                     "type": "string"
                 }
             }

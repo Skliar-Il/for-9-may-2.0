@@ -16,6 +16,7 @@ type PersonRepositoryInterface interface {
 	CountUnread(ctx context.Context, tx pgx.Tx) (*dto.PersonCountDTO, error)
 	GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*dto.PersonDTO, error)
 	Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
+	Update(ctx context.Context, tx pgx.Tx, person *dto.UpdatePersonDTO) error
 }
 
 type PersonRepository struct{}
@@ -213,4 +214,27 @@ func (PersonRepository) CountUnread(ctx context.Context, tx pgx.Tx) (*dto.Person
 		return nil, err
 	}
 	return &personCount, nil
+}
+
+func (PersonRepository) Update(ctx context.Context, tx pgx.Tx, person *dto.UpdatePersonDTO) error {
+	query := `
+		UPDATE person 
+		SET
+			name = $1,
+			surname = $2,
+			patronymic = $3,
+			date_death = $4,
+			date_birth = $5,
+			city_birth = $6,
+			history = $7,
+			rank = $8
+		WHERE id = $9
+	`
+
+	_, err := tx.Exec(ctx, query, person.Name, person.Surname, person.Patronymic, person.DateDeath,
+		person.DateBirth, person.City, person.History, person.Rank, person.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

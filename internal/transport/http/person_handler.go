@@ -224,13 +224,22 @@ func (p *PersonHandler) GetPersonByID(c *gin.Context) {
 	c.JSON(http.StatusOK, person)
 }
 
+type TestDTO struct {
+	Penis string `json:"penis"`
+}
+
+type Test2DTO struct {
+	ID string `json:"ID,omitempty"`
+	TestDTO
+}
+
 // UpdatePerson
 // @Summary Update person information
 // @Description Updates existing person's data by ID with provided information
 // @Tags Person
 // @Accept json
 // @Produce json
-// @Param request body dto.PersonDTO true "Person data to update"
+// @Param request body dto.UpdatePersonDTO true "Person data to update"
 // @Success 204 "No content (successful update with no response body)"
 // @Failure 400 {object} web.ValidationError "Invalid request format"
 // @Failure 401 "Unauthorized"
@@ -238,14 +247,18 @@ func (p *PersonHandler) GetPersonByID(c *gin.Context) {
 // @Failure 404 "Person not found"
 // @Failure 422 {object} web.ValidationError "Validation error"
 // @Failure 500 "Internal server error"
-// @Router /persons/{id} [put]
+// @Router /person [put]
 func (p *PersonHandler) UpdatePerson(c *gin.Context) {
 	localLogger := logger.GetLoggerFromCtx(c)
 
-	var person dto.PersonDTO
+	var person dto.UpdatePersonDTO
 	if err := c.ShouldBindJSON(&person); err != nil {
 		localLogger.Error(c, fmt.Sprintf("invalid body: %v", err))
 		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, web.ValidationError{Message: err.Error()})
+		return
+	}
+	if err := p.PersonService.UpdatePerson(c, &person); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, web.InternalServerError{})
 		return
 	}
 	c.JSON(http.StatusNoContent, nil)
@@ -280,7 +293,7 @@ func (p *PersonHandler) CountPerson(c *gin.Context) {
 // @Param file formData file true "Image file (jpeg/png)"
 // @Param main query boolean true "use as main photo (default false)"
 // @Param id path string true "person id" format(uuid)
-// @Success 201 {object} dto.CreateNewPhotoDTO
+// @Success 201 {object} dto.CreatePhotoDTO
 // @Failure 400
 // @Failure 401
 // @Failure 413
@@ -314,7 +327,7 @@ func (p *PersonHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	var personPhotoDTO dto.CreateNewPhotoDTO
+	var personPhotoDTO dto.CreatePhotoDTO
 	personPhotoDTO.MainStatus = mainStatus
 	personPhotoDTO.PersonID = personID
 	err = p.PersonService.UploadPersonPhoto(c, &personPhotoDTO, p.PhotoConfig.MaxCount, file)

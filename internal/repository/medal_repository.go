@@ -10,9 +10,10 @@ import (
 
 type MedalRepositoryInterface interface {
 	CheckMedals(ctx context.Context, tx pgx.Tx, medals []int) (*bool, error)
-	CreateMedalPerson(ctx context.Context, tx pgx.Tx, userID *uuid.UUID, medals []int) error
+	CreateMedalPerson(ctx context.Context, tx pgx.Tx, userID uuid.UUID, medals []int) error
 	GetMedals(ctx context.Context, tx pgx.Tx) ([]dto.MedalDTO, error)
 	CreateMedal(ctx context.Context, tx pgx.Tx, medal *dto.CreateMedalDTO) (int, error)
+	DeleteMedalPersonByID(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
 }
 type MedalRepository struct{}
 
@@ -34,7 +35,7 @@ func (m MedalRepository) CheckMedals(ctx context.Context, tx pgx.Tx, medals []in
 	return &status, nil
 }
 
-func (m MedalRepository) CreateMedalPerson(ctx context.Context, tx pgx.Tx, userID *uuid.UUID, medals []int) error {
+func (m MedalRepository) CreateMedalPerson(ctx context.Context, tx pgx.Tx, userID uuid.UUID, medals []int) error {
 	query := `
 		INSERT INTO medal_person(person_id, medal_id)
 		VALUES ($1, $2)`
@@ -85,4 +86,17 @@ func (m MedalRepository) CreateMedal(ctx context.Context, tx pgx.Tx, medal *dto.
 		return 0, err
 	}
 	return medalID, nil
+}
+
+func (MedalRepository) DeleteMedalPersonByID(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
+	query := `
+		DELETE FROM medal_person
+		WHERE person_id = $1
+	`
+
+	_, err := tx.Exec(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

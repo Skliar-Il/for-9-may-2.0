@@ -7,15 +7,6 @@ definitions:
       photo_link:
         type: string
     type: object
-  dto.CreateNewPhotoDTO:
-    properties:
-      link:
-        type: string
-      main_status:
-        type: boolean
-      person_id:
-        type: string
-    type: object
   dto.CreatePersonDTO:
     properties:
       city:
@@ -64,6 +55,15 @@ definitions:
     - relative
     - role
     - surname
+    type: object
+  dto.CreatePhotoDTO:
+    properties:
+      link:
+        type: string
+      main_status:
+        type: boolean
+      person_id:
+        type: string
     type: object
   dto.MedalDTO:
     properties:
@@ -114,7 +114,9 @@ definitions:
       patronymic:
         type: string
       photo:
-        $ref: '#/definitions/dto.PhotoDTO'
+        items:
+          $ref: '#/definitions/dto.PhotoDTO'
+        type: array
       rank:
         type: string
       relative:
@@ -135,6 +137,57 @@ definitions:
     properties:
       message:
         type: string
+    type: object
+  dto.UpdatePersonDTO:
+    properties:
+      city:
+        type: string
+      contact_email:
+        type: string
+      contact_name:
+        type: string
+      contact_patronymic:
+        type: string
+      contact_surname:
+        type: string
+      contact_telegram:
+        type: string
+      date_birth:
+        type: integer
+      date_death:
+        type: integer
+      history:
+        type: string
+      id:
+        type: string
+      medals:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      patronymic:
+        type: string
+      rank:
+        type: string
+      relative:
+        type: string
+      role:
+        type: boolean
+      surname:
+        type: string
+    required:
+    - contact_email
+    - contact_name
+    - contact_surname
+    - contact_telegram
+    - history
+    - medals
+    - name
+    - rank
+    - relative
+    - role
+    - surname
     type: object
   web.BadRequestError:
     properties:
@@ -210,6 +263,41 @@ paths:
           schema:
             $ref: '#/definitions/web.InternalServerError'
       summary: Get person information list
+      tags:
+      - Person
+    put:
+      consumes:
+      - application/json
+      description: Updates existing person's data by ID with provided information
+      parameters:
+      - description: Person data to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePersonDTO'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content (successful update with no response body)
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/web.ValidationError'
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Person not found
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/web.ValidationError'
+        "500":
+          description: Internal server error
+      summary: Update person information
       tags:
       - Person
   /person/{id}:
@@ -336,7 +424,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.CreateNewPhotoDTO'
+            $ref: '#/definitions/dto.CreatePhotoDTO'
         "400":
           description: Bad Request
         "401":
@@ -375,42 +463,6 @@ paths:
           schema:
             $ref: '#/definitions/web.InternalServerError'
       summary: ValidatePerson person
-      tags:
-      - Person
-  /persons/{id}:
-    put:
-      consumes:
-      - application/json
-      description: Updates existing person's data by ID with provided information
-      parameters:
-      - description: Person data to update
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.PersonDTO'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No content (successful update with no response body)
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/web.ValidationError'
-        "401":
-          description: Unauthorized
-        "403":
-          description: Forbidden
-        "404":
-          description: Person not found
-        "422":
-          description: Validation error
-          schema:
-            $ref: '#/definitions/web.ValidationError'
-        "500":
-          description: Internal server error
-      summary: Update person information
       tags:
       - Person
   /profile/login:

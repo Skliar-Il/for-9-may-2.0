@@ -67,7 +67,7 @@ func (p *PersonService) CreatePeron(ctx *gin.Context, person *dto.CreatePersonDT
 			return nil, err
 		}
 	}
-	err = p.MedalRepository.CreateMedalPerson(ctx, tx, personUUID, person.Medals)
+	err = p.MedalRepository.CreateMedalPerson(ctx, tx, *personUUID, person.Medals)
 	if err != nil {
 		pgError := database.ValidatePgxError(err)
 		if pgError != nil {
@@ -88,7 +88,7 @@ func (p *PersonService) CreatePeron(ctx *gin.Context, person *dto.CreatePersonDT
 		return nil, web.InternalServerError{}
 	}
 
-	if err := p.OwnerRepository.CreateOwner(ctx, tx, person, formID); err != nil {
+	if err := p.OwnerRepository.Create(ctx, tx, person, formID); err != nil {
 		localLogger.Error(ctx, "create owner database error: ", zap.String("error", err.Error()))
 
 	}
@@ -212,7 +212,7 @@ func (p *PersonService) DeletePerson(ctx *gin.Context, id uuid.UUID) error {
 
 func (p *PersonService) UploadPersonPhoto(
 	ctx *gin.Context,
-	photo *dto.CreateNewPhotoDTO,
+	photo *dto.CreatePhotoDTO,
 	countOK int,
 	file *multipart.FileHeader,
 ) error {
@@ -285,6 +285,39 @@ func (p *PersonService) DeletePersonPhoto(ctx *gin.Context, photo *dto.DeletePho
 	if err := tx.Commit(ctx); err != nil {
 		localLogger.Error(ctx, "commit error", zap.Error(err))
 		return web.InternalServerError{}
+	}
+
+	return nil
+}
+
+func (p *PersonService) UpdatePerson(ctx *gin.Context, person *dto.UpdatePersonDTO) error {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := p.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "begin tx error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	defer database.RollbackTx(ctx, tx, localLogger)
+
+	if err := p.PersonRepository.Update(ctx, tx, person); err != nil {
+		localLogger.Error(ctx, "database update person error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	if err := p.MedalRepository.DeleteMedalPersonByID(ctx, tx, person.ID); err != nil {
+		localLogger.Error(ctx, "database delete medal person error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	if err := p.MedalRepository.CreateMedalPerson(ctx, tx, person.ID, person.Medals); err != nil {
+		localLogger.Error(ctx, "database create medal person error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	if err := p.OwnerRepository.Update(ctx, tx, person); err != nil {
+		localLogger.Error(ctx, "update owner error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		localLogger.Error(ctx, "commit update person error", zap.Error(err))
 	}
 
 	return nil

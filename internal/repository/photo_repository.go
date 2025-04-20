@@ -10,7 +10,7 @@ import (
 type PhotoRepositoryInterface interface {
 	CheckMainStatus(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (bool, error)
 	CheckCount(ctx context.Context, tx pgx.Tx, countOK int, personID uuid.UUID) (bool, error)
-	CreatePhoto(ctx context.Context, tx pgx.Tx, photo *dto.CreateNewPhotoDTO) error
+	CreatePhoto(ctx context.Context, tx pgx.Tx, photo *dto.CreatePhotoDTO) error
 	DeletePhoto(ctx context.Context, tx pgx.Tx, userID uuid.UUID, photoID int) error
 }
 
@@ -57,7 +57,7 @@ func (PhotoRepository) CheckCount(ctx context.Context, tx pgx.Tx, countOK int, p
 	return true, nil
 }
 
-func (PhotoRepository) CreatePhoto(ctx context.Context, tx pgx.Tx, photo *dto.CreateNewPhotoDTO) error {
+func (PhotoRepository) CreatePhoto(ctx context.Context, tx pgx.Tx, photo *dto.CreatePhotoDTO) error {
 	query := `
 		INSERT INTO person_photo(person_id, link, main_status)
 		VALUES($1, $2, $3)
