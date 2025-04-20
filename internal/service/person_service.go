@@ -101,7 +101,7 @@ func (p *PersonService) CreatePeron(ctx *gin.Context, person *dto.CreatePersonDT
 	return personUUID, nil
 }
 
-func (p *PersonService) GetPersons(ctx *gin.Context, check bool, status bool) ([]dto.PersonDTO, error) {
+func (p *PersonService) GetPersons(ctx *gin.Context, check bool, status bool) ([]*dto.PersonDTO, error) {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := p.DBPool.Begin(ctx)
 	if err != nil {
@@ -116,7 +116,7 @@ func (p *PersonService) GetPersons(ctx *gin.Context, check bool, status bool) ([
 		return nil, web.InternalServerError{}
 	}
 	if persons == nil {
-		persons = []dto.PersonDTO{}
+		persons = []*dto.PersonDTO{}
 	}
 
 	return persons, nil

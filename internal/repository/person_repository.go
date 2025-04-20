@@ -11,7 +11,7 @@ import (
 
 type PersonRepositoryInterface interface {
 	CreatePerson(ctx context.Context, tx pgx.Tx, person *dto.CreatePersonDTO) (*uuid.UUID, error)
-	GetPersons(ctx context.Context, tx pgx.Tx, check bool, status bool) ([]dto.PersonDTO, error)
+	GetPersons(ctx context.Context, tx pgx.Tx, check bool, status bool) ([]*dto.PersonDTO, error)
 	Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
 	CountUnread(ctx context.Context, tx pgx.Tx) (*dto.PersonCountDTO, error)
 	GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*dto.PersonDTO, error)
@@ -58,7 +58,7 @@ func (PersonRepository) CreatePerson(
 	return &personID, nil
 }
 
-func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool, status bool) ([]dto.PersonDTO, error) {
+func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool, status bool) ([]*dto.PersonDTO, error) {
 	query := `
 		SELECT *
 		FROM all_person_fields_view
@@ -71,7 +71,7 @@ func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool, s
 	}
 	defer rows.Close()
 
-	var persons []dto.PersonDTO
+	var persons []*dto.PersonDTO
 	if rows != nil {
 		for rows.Next() {
 			var p dto.PersonDTO
@@ -112,7 +112,7 @@ func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool, s
 				return nil, fmt.Errorf("failed to unmarshal photo: %w", err)
 			}
 
-			persons = append(persons, p)
+			persons = append(persons, &p)
 		}
 
 	} else {

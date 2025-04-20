@@ -1,5 +1,12 @@
 basePath: /api
 definitions:
+  dto.CreateGalleryPostDTO:
+    properties:
+      date:
+        type: string
+      description:
+        type: string
+    type: object
   dto.CreateMedalDTO:
     properties:
       name:
@@ -39,8 +46,6 @@ definitions:
         type: string
       relative:
         type: string
-      role:
-        type: boolean
       surname:
         type: string
     required:
@@ -53,7 +58,6 @@ definitions:
     - name
     - rank
     - relative
-    - role
     - surname
     type: object
   dto.CreatePhotoDTO:
@@ -63,6 +67,17 @@ definitions:
       main_status:
         type: boolean
       person_id:
+        type: string
+    type: object
+  dto.GalleryPostDTO:
+    properties:
+      date:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      link:
         type: string
     type: object
   dto.MedalDTO:
@@ -176,8 +191,6 @@ definitions:
         type: string
       relative:
         type: string
-      role:
-        type: boolean
       surname:
         type: string
     required:
@@ -190,7 +203,6 @@ definitions:
     - name
     - rank
     - relative
-    - role
     - surname
     type: object
   web.BadRequestError:
@@ -214,8 +226,109 @@ definitions:
 info:
   contact: {}
   title: Polk Sirius
-  version: "1.0"
+  version: "2.0"
 paths:
+  /gallery:
+    get:
+      consumes:
+      - application/json
+      description: get posts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: posts
+          schema:
+            $ref: '#/definitions/dto.GalleryPostDTO'
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/web.InternalServerError'
+      summary: get posts
+      tags:
+      - Gallery
+    post:
+      consumes:
+      - application/json
+      description: create new post in gallery
+      parameters:
+      - description: post in gallery info
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateGalleryPostDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/web.InternalServerError'
+      summary: create new post
+      tags:
+      - Gallery
+  /gallery/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete post from gallery
+      parameters:
+      - description: post id
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/web.InternalServerError'
+      summary: delete post
+      tags:
+      - Gallery
+  /gallery/file/upload/{id}:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload file, use only .jpg and .png
+      parameters:
+      - description: Image file (jpeg/png)
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: post id
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "413":
+          description: Request Entity Too Large
+        "500":
+          description: Internal Server Error
+      summary: upload file
+      tags:
+      - Gallery
   /medal:
     get:
       responses: {}

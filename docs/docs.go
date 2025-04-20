@@ -15,6 +15,158 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/gallery": {
+            "get": {
+                "description": "get posts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "get posts",
+                "responses": {
+                    "200": {
+                        "description": "posts",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GalleryPostDTO"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/web.InternalServerError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "create new post in gallery",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "create new post",
+                "parameters": [
+                    {
+                        "description": "post in gallery info",
+                        "name": "post",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateGalleryPostDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/web.InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/gallery/file/upload/{id}": {
+            "post": {
+                "description": "Upload file, use only .jpg and .png",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "upload file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image file (jpeg/png)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "post id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/gallery/{id}": {
+            "delete": {
+                "description": "delete post from gallery",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "delete post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "post id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/web.InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/medal": {
             "get": {
                 "tags": [
@@ -552,6 +704,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.CreateGalleryPostDTO": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateMedalDTO": {
             "type": "object",
             "properties": {
@@ -575,7 +738,6 @@ const docTemplate = `{
                 "name",
                 "rank",
                 "relative",
-                "role",
                 "surname"
             ],
             "properties": {
@@ -624,9 +786,6 @@ const docTemplate = `{
                 "relative": {
                     "type": "string"
                 },
-                "role": {
-                    "type": "boolean"
-                },
                 "surname": {
                     "type": "string"
                 }
@@ -642,6 +801,23 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "person_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GalleryPostDTO": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "link": {
                     "type": "string"
                 }
             }
@@ -773,7 +949,6 @@ const docTemplate = `{
                 "name",
                 "rank",
                 "relative",
-                "role",
                 "surname"
             ],
             "properties": {
@@ -828,9 +1003,6 @@ const docTemplate = `{
                 "relative": {
                     "type": "string"
                 },
-                "role": {
-                    "type": "boolean"
-                },
                 "surname": {
                     "type": "string"
                 }
@@ -874,7 +1046,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "2.0",
 	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},

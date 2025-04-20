@@ -30,6 +30,7 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 	formRepository := repository.NewFormRepository()
 	ownerRepository := repository.NewOwnerRepository()
 	photoRepository := repository.NewPhotoRepository()
+	galleryRepository := repository.NewGalleryRepository()
 
 	personService := service.NewPersonService(
 		dbPool,
@@ -41,10 +42,12 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 	)
 	profileService := service.NewProfileService(cfg.Admin, jwtService)
 	medalService := service.NewMedalService(dbPool, medalRepository)
+	galleryService := service.NewGalleryService(dbPool, galleryRepository)
 
 	personController := NewPersonHandler(personService, profileService, jwtService, cfg.PhotoConfig)
 	profileController := NewProfileHandler(jwtService, cfg.Admin)
 	medalController := NewMedalHandler(medalService)
+	galleryController := NewGalleryHandler(galleryService)
 
 	profileGroup := api.Group("/profile")
 	{
@@ -71,5 +74,13 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 		medalGroup.GET("", medalController.GetMedals)
 		medalGroup.DELETE("/:id", medalController.DeleteMedal)
 		medalGroup.PUT("", medalController.UpdateMedal)
+	}
+
+	galleryGroup := api.Group("/gallery")
+	{
+		galleryGroup.POST("", galleryController.CreatePost)
+		galleryGroup.DELETE("/:id", galleryController.DeletePost)
+		galleryGroup.GET("", galleryController.GetPosts)
+		galleryGroup.POST("/file/upload/:id", galleryController.UploadPostFile)
 	}
 }

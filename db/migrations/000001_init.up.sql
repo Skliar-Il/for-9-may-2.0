@@ -51,8 +51,14 @@ CREATE TABLE IF NOT EXISTS medal (
 CREATE TABLE IF NOT EXISTS medal_person (
     id serial PRIMARY KEY,
     person_id uuid NOT NULL REFERENCES person(id) ON DELETE CASCADE ,
-    medal_id int NOT NULL REFERENCES medal (id) ON DELETE CASCADE ,
-    UNIQUE (person_id, medal_id)
+    medal_id int NOT NULL REFERENCES medal (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS gallery (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    description text NOT NULL,
+    link text UNIQUE,
+    date timestamp NOT NULL
 );
 
 CREATE OR REPLACE FUNCTION check_main_photo_before_insert()

@@ -11,7 +11,7 @@ import (
 
 // @title Polk Sirius
 // @securityDefinitions.basic  BasicAuth
-// @version 1.0
+// @version 2.0
 // @BasePath /api
 func main() {
 	ctx := context.Background()
