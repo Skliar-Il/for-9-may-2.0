@@ -629,6 +629,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "link": {
+                    "type": "string"
+                },
                 "medals": {
                     "type": "array",
                     "items": {
@@ -641,6 +644,9 @@ const docTemplate = `{
                 "patronymic": {
                     "type": "string"
                 },
+                "photo": {
+                    "$ref": "#/definitions/dto.PhotoDTO"
+                },
                 "rank": {
                     "type": "string"
                 },
@@ -651,6 +657,17 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "surname": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PhotoDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "link": {
                     "type": "string"
                 }
             }

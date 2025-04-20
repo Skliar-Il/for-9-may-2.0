@@ -325,3 +325,5 @@ func (p *PersonHandler) UploadFile(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, personPhotoDTO)
 }
+
+func (p *PersonHandler) DeletePhoto(c *gin.Context) {}

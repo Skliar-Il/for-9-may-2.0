@@ -67,13 +67,14 @@ SELECT
     p.history,
     p.rank,
     o.email,
-    o.name as owner_name,
-    o.surname as owner_surname,
-    o.patronymic as owner_patronymic,
+    o.name AS owner_name,
+    o.surname AS owner_surname,
+    o.patronymic AS owner_patronymic,
     o.telegram,
     o.relative,
-    f.status_check as status_check,
+    f.status_check AS status_check,
     f.date_published,
+    pp.link AS main_link,
     (
         SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
                 'id', m.id,
@@ -83,7 +84,17 @@ SELECT
         FROM medal_person mp
         JOIN medal m ON m.id = mp.medal_id
         WHERE mp.person_id = p.id
-    ) AS medals
+    ) AS medals,
+    (
+        SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
+                                'id', pp.id,
+                                 'link', pp.link
+                                 )), '[]')
+        FROM person_photo pp
+        WHERE pp.person_id = p.id and pp.main_status = false
+    ) AS photo
     FROM person p
     LEFT JOIN form f ON f.person_id = p.id
-    LEFT JOIN owner o ON o.form_id = f.id;
+    LEFT JOIN owner o ON o.form_id = f.id
+    LEFT JOIN person_photo pp ON pp.person_id = p.id
+    WHERE pp.main_status = true;

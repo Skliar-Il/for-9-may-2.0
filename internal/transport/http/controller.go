@@ -38,7 +38,6 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 		formRepository,
 		ownerRepository,
 		photoRepository,
-		//storageWorker,
 	)
 	profileService := service.NewProfileService(cfg.Admin, jwtService)
 	medalService := service.NewMedalService(dbPool, medalRepository)
@@ -63,6 +62,7 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 		personGroup.PUT("", personController.UpdatePerson)
 		personGroup.GET("/count", personController.CountPerson)
 		personGroup.POST("/file/upload/:id", personController.UploadFile)
+		personGroup.DELETE("/file/delete", personController.DeletePhoto)
 	}
 
 	medalGroup := api.Group("/medal")

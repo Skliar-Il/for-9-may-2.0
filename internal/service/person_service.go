@@ -267,3 +267,25 @@ func (p *PersonService) UploadPersonPhoto(
 
 	return nil
 }
+
+func (p *PersonService) DeletePersonPhoto(ctx *gin.Context, photo *dto.DeletePhotoDTO) error {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := p.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "begin tx error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	defer database.RollbackTx(ctx, tx, localLogger)
+
+	if err := p.PhotoRepository.DeletePhoto(ctx, tx, photo.PersonID, photo.ID); err != nil {
+		localLogger.Error(ctx, "delete medal error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		localLogger.Error(ctx, "commit error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+
+	return nil
+}

@@ -75,6 +75,7 @@ func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) (
 		for rows.Next() {
 			var p dto.PersonDTO
 			var medalsJSON []byte
+			var photoJSON []byte
 
 			err := rows.Scan(
 				&p.ID,
@@ -94,7 +95,9 @@ func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) (
 				&p.Relative,
 				&p.StatusCheck,
 				&p.DatePublished,
+				&p.MainPhoto,
 				&medalsJSON,
+				&photoJSON,
 			)
 			if err != nil {
 				return nil, fmt.Errorf("scan failed: %w", err)
@@ -102,6 +105,10 @@ func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) (
 
 			if err := json.Unmarshal(medalsJSON, &p.Medals); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal medals: %w", err)
+			}
+
+			if err := json.Unmarshal(photoJSON, &p.Photo); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal photo: %w", err)
 			}
 
 			persons = append(persons, p)
@@ -125,6 +132,7 @@ func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID u
 	`
 	var p dto.PersonDTO
 	var medalsJSON []byte
+	var photoJSON []byte
 	err := tx.QueryRow(ctx, query, personID).Scan(
 		&p.ID,
 		&p.Name,
@@ -143,14 +151,22 @@ func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID u
 		&p.Relative,
 		&p.StatusCheck,
 		&p.DatePublished,
+		&p.MainPhoto,
 		&medalsJSON,
+		&photoJSON,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("scan row error: %w", err)
 	}
+
 	if err := json.Unmarshal(medalsJSON, &p.Medals); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal medals: %w", err)
 	}
+
+	if err := json.Unmarshal(photoJSON, &p.Photo); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal photo: %w", err)
+	}
+
 	return &p, nil
 }
 
