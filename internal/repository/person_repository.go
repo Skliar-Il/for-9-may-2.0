@@ -96,7 +96,6 @@ func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) (
 				&p.Relative,
 				&p.StatusCheck,
 				&p.DatePublished,
-				&p.MainPhoto,
 				&medalsJSON,
 				&photoJSON,
 			)
@@ -152,7 +151,6 @@ func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID u
 		&p.Relative,
 		&p.StatusCheck,
 		&p.DatePublished,
-		&p.MainPhoto,
 		&medalsJSON,
 		&photoJSON,
 	)

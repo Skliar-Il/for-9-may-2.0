@@ -43,7 +43,6 @@ type PersonDTO struct {
 	Medals            []MedalDTO `json:"medals"`
 	Relative          string     `json:"relative"`
 	DatePublished     time.Time  `json:"date_published"`
-	MainPhoto         string     `json:"link"`
 	Photo             []PhotoDTO `json:"photo"`
 }
 

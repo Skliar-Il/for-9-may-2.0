@@ -9,6 +9,7 @@ type CreatePhotoDTO struct {
 }
 
 type PhotoDTO struct {
-	ID   int    `json:"id"`
-	Link string `json:"link"`
+	ID     int    `json:"id"`
+	Link   string `json:"link"`
+	IsMain bool   `json:"is_main"`
 }

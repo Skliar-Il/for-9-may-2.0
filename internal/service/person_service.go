@@ -256,6 +256,12 @@ func (p *PersonService) UploadPersonPhoto(
 
 	err = p.PhotoRepository.CreatePhoto(ctx, tx, photo)
 	if err != nil {
+		pgError := database.ValidatePgxError(err)
+		if pgError != nil {
+			if pgError.Type == database.TypeForeignKey {
+				return web.NotFoundError{Message: "person not found"}
+			}
+		}
 		localLogger.Error(ctx, "failed add photo data in database", zap.Error(err))
 		return web.InternalServerError{}
 	}

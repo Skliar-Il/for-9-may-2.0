@@ -74,7 +74,6 @@ SELECT
     o.relative,
     f.status_check AS status_check,
     f.date_published,
-    pp.link AS main_link,
     (
         SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
                 'id', m.id,
@@ -88,13 +87,12 @@ SELECT
     (
         SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
                                 'id', pp.id,
-                                 'link', pp.link
+                                 'link', pp.link,
+                                 'is_main', pp.main_status
                                  )), '[]')
         FROM person_photo pp
-        WHERE pp.person_id = p.id and pp.main_status = false
+        WHERE pp.person_id = p.id
     ) AS photo
     FROM person p
     LEFT JOIN form f ON f.person_id = p.id
-    LEFT JOIN owner o ON o.form_id = f.id
-    LEFT JOIN person_photo pp ON pp.person_id = p.id
-    WHERE pp.main_status = true;
+    LEFT JOIN owner o ON o.form_id = f.id;
