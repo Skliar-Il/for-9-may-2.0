@@ -103,6 +103,8 @@ definitions:
         type: string
       id:
         type: string
+      main_page:
+        type: boolean
       medals:
         items:
           $ref: '#/definitions/dto.MedalDTO'
@@ -160,6 +162,8 @@ definitions:
         type: string
       id:
         type: string
+      main_page:
+        type: boolean
       medals:
         items:
           type: integer
@@ -257,6 +261,12 @@ paths:
       - application/json
       description: Retrieve person data with optional status check
       parameters:
+      - default: true
+        description: status on main page
+        in: query
+        name: status
+        required: true
+        type: boolean
       - default: true
         description: Status check flag
         in: query

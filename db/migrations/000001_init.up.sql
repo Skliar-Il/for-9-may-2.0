@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS form (
     id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
     status_check boolean NOT NULL DEFAULT false,
     date_published timestamp NOT NULL DEFAULT TIMEZONE('utc', now()),
-    person_id uuid NOT NULL UNIQUE REFERENCES person(id) ON DELETE CASCADE
+    person_id uuid NOT NULL UNIQUE REFERENCES person(id) ON DELETE CASCADE,
+    main boolean NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS owner (
@@ -93,6 +94,7 @@ SELECT
     o.relative,
     f.status_check AS status_check,
     f.date_published,
+    f.main,
     (
         SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
                 'id', m.id,

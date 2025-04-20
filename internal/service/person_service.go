@@ -101,7 +101,7 @@ func (p *PersonService) CreatePeron(ctx *gin.Context, person *dto.CreatePersonDT
 	return personUUID, nil
 }
 
-func (p *PersonService) GetPersons(ctx *gin.Context, check bool) ([]dto.PersonDTO, error) {
+func (p *PersonService) GetPersons(ctx *gin.Context, check bool, status bool) ([]dto.PersonDTO, error) {
 	localLogger := logger.GetLoggerFromCtx(ctx)
 	tx, err := p.DBPool.Begin(ctx)
 	if err != nil {
@@ -110,7 +110,7 @@ func (p *PersonService) GetPersons(ctx *gin.Context, check bool) ([]dto.PersonDT
 	}
 	defer database.RollbackTx(ctx, tx, localLogger)
 
-	persons, err := p.PersonRepository.GetPersons(ctx, tx, check)
+	persons, err := p.PersonRepository.GetPersons(ctx, tx, check, status)
 	if err != nil {
 		localLogger.Error(ctx, "get person error", zap.Error(err))
 		return nil, web.InternalServerError{}
@@ -319,6 +319,10 @@ func (p *PersonService) UpdatePerson(ctx *gin.Context, person *dto.UpdatePersonD
 	}
 	if err := p.OwnerRepository.Update(ctx, tx, person); err != nil {
 		localLogger.Error(ctx, "update owner error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	if err := p.FormRepository.UpdateForm(ctx, tx, person.ID, person.StatusMain); err != nil {
+		localLogger.Error(ctx, "database update form error", zap.Error(err))
 		return web.InternalServerError{}
 	}
 

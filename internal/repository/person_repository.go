@@ -11,7 +11,7 @@ import (
 
 type PersonRepositoryInterface interface {
 	CreatePerson(ctx context.Context, tx pgx.Tx, person *dto.CreatePersonDTO) (*uuid.UUID, error)
-	GetPersons(ctx context.Context, tx pgx.Tx, check bool) ([]dto.PersonDTO, error)
+	GetPersons(ctx context.Context, tx pgx.Tx, check bool, status bool) ([]dto.PersonDTO, error)
 	Validate(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
 	CountUnread(ctx context.Context, tx pgx.Tx) (*dto.PersonCountDTO, error)
 	GerPersonByID(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (*dto.PersonDTO, error)
@@ -58,14 +58,14 @@ func (PersonRepository) CreatePerson(
 	return &personID, nil
 }
 
-func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) ([]dto.PersonDTO, error) {
+func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool, status bool) ([]dto.PersonDTO, error) {
 	query := `
 		SELECT *
 		FROM all_person_fields_view
-        WHERE status_check = $1
+        WHERE status_check = $1 and main = $2
     `
 
-	rows, err := tx.Query(ctx, query, check)
+	rows, err := tx.Query(ctx, query, check, status)
 	if err != nil {
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
@@ -96,6 +96,7 @@ func (PersonRepository) GetPersons(ctx context.Context, tx pgx.Tx, check bool) (
 				&p.Relative,
 				&p.StatusCheck,
 				&p.DatePublished,
+				&p.StatusMain,
 				&medalsJSON,
 				&photoJSON,
 			)
@@ -151,6 +152,7 @@ func (PersonRepository) GerPersonByID(ctx context.Context, tx pgx.Tx, personID u
 		&p.Relative,
 		&p.StatusCheck,
 		&p.DatePublished,
+		&p.StatusMain,
 		&medalsJSON,
 		&photoJSON,
 	)

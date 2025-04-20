@@ -70,6 +70,7 @@ func (p *PersonHandler) NewPerson(c *gin.Context) {
 // @Tags Person
 // @Accept json
 // @Produce json
+// @Param status query bool true "status on main page" default(true)
 // @Param check query bool true "Status check flag" default(true)
 // @Success 200 {array} []dto.PersonDTO
 // @Failure 400 {object} web.BadRequestError "Invalid request parameters"
@@ -79,10 +80,18 @@ func (p *PersonHandler) NewPerson(c *gin.Context) {
 func (p *PersonHandler) GetPersonList(c *gin.Context) {
 	localLogger := logger.GetLoggerFromCtx(c)
 
+	statusMainStr := c.DefaultQuery("status", "true")
+	statusMain, err := strconv.ParseBool(statusMainStr)
+	if err != nil {
+		localLogger.Error(c, "invalid query param status", zap.String("error", err.Error()))
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, web.ValidationError{Message: "field status is invalid"})
+		return
+	}
+
 	statusStr := c.DefaultQuery("check", "true")
 	status, err := strconv.ParseBool(statusStr)
 	if err != nil {
-		localLogger.Error(c, "invalid query param", zap.String("error", err.Error()))
+		localLogger.Error(c, "invalid query param check", zap.String("error", err.Error()))
 		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, web.ValidationError{Message: "field check is invalid"})
 		return
 	}
@@ -103,7 +112,7 @@ func (p *PersonHandler) GetPersonList(c *gin.Context) {
 		}
 	}
 
-	persons, err := p.PersonService.GetPersons(c, status)
+	persons, err := p.PersonService.GetPersons(c, status, statusMain)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return

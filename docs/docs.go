@@ -93,6 +93,14 @@ const docTemplate = `{
                     {
                         "type": "boolean",
                         "default": true,
+                        "description": "status on main page",
+                        "name": "status",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
                         "description": "Status check flag",
                         "name": "check",
                         "in": "query",
@@ -696,6 +704,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "main_page": {
+                    "type": "boolean"
+                },
                 "medals": {
                     "type": "array",
                     "items": {
@@ -795,6 +806,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "main_page": {
+                    "type": "boolean"
                 },
                 "medals": {
                     "type": "array",

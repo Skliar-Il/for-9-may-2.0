@@ -43,6 +43,7 @@ type PersonDTO struct {
 	Medals            []MedalDTO `json:"medals"`
 	Relative          string     `json:"relative"`
 	DatePublished     time.Time  `json:"date_published"`
+	StatusMain        bool       `json:"main_page"`
 	Photo             []PhotoDTO `json:"photo"`
 }
 
@@ -51,6 +52,7 @@ type PersonCountDTO struct {
 }
 
 type UpdatePersonDTO struct {
-	ID uuid.UUID `json:"id"`
+	ID         uuid.UUID `json:"id"`
+	StatusMain bool      `json:"main_page"`
 	CreatePersonDTO
 }

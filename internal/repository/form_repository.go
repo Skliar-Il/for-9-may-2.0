@@ -9,6 +9,7 @@ import (
 type FormRepositoryInterface interface {
 	CreateForm(ctx context.Context, tx pgx.Tx, personID *uuid.UUID) (*uuid.UUID, error)
 	StatusForm(ctx context.Context, tx pgx.Tx, personID uuid.UUID) (bool, error)
+	UpdateForm(ctx context.Context, tx pgx.Tx, personID uuid.UUID, status bool) error
 }
 
 type FormRepository struct {
@@ -43,4 +44,15 @@ func (f FormRepository) StatusForm(ctx context.Context, tx pgx.Tx, personID uuid
 	}
 
 	return formStatus, nil
+}
+
+func (FormRepository) UpdateForm(ctx context.Context, tx pgx.Tx, personID uuid.UUID, status bool) error {
+	query := `
+		UPDATE form
+		SET
+			main = $1
+		WHERE person_id = $2
+	`
+	_, err := tx.Exec(ctx, query, status, personID)
+	return err
 }
