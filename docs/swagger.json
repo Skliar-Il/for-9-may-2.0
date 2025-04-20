@@ -13,6 +13,23 @@
                     "Medal"
                 ],
                 "responses": {}
+            },
+            "put": {
+                "tags": [
+                    "Medal"
+                ],
+                "parameters": [
+                    {
+                        "description": "medal",
+                        "name": "medal",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MedalDTO"
+                        }
+                    }
+                ],
+                "responses": {}
             }
         },
         "/medal/create": {
@@ -29,6 +46,23 @@
                         "schema": {
                             "$ref": "#/definitions/dto.CreateMedalDTO"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/medal/{id}": {
+            "delete": {
+                "tags": [
+                    "Medal"
+                ],
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "medal id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -654,9 +688,6 @@
                 "id": {
                     "type": "string"
                 },
-                "link": {
-                    "type": "string"
-                },
                 "medals": {
                     "type": "array",
                     "items": {
@@ -694,6 +725,9 @@
             "properties": {
                 "id": {
                     "type": "integer"
+                },
+                "is_main": {
+                    "type": "boolean"
                 },
                 "link": {
                     "type": "string"

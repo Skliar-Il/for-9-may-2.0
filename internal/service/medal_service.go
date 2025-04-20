@@ -76,3 +76,47 @@ func (m *MedalService) CreateMedal(ctx *gin.Context, medal *dto.CreateMedalDTO) 
 
 	return medalID, nil
 }
+
+func (m *MedalService) DeleteMedal(ctx *gin.Context, medalID int) error {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := m.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "begin tx error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	defer database.RollbackTx(ctx, tx, localLogger)
+
+	if err := m.MedalRepository.DeleteMedal(ctx, tx, medalID); err != nil {
+		localLogger.Error(ctx, "database delete medal error")
+		return web.InternalServerError{}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		localLogger.Error(ctx, "commit error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+
+	return nil
+}
+
+func (m *MedalService) UpdateMedal(ctx *gin.Context, medal *dto.MedalDTO) error {
+	localLogger := logger.GetLoggerFromCtx(ctx)
+	tx, err := m.DBPool.Begin(ctx)
+	if err != nil {
+		localLogger.Error(ctx, "begin tx error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+	defer database.RollbackTx(ctx, tx, localLogger)
+
+	if err := m.MedalRepository.UpdateMedal(ctx, tx, medal); err != nil {
+		localLogger.Error(ctx, "database update medal error")
+		return web.InternalServerError{}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		localLogger.Error(ctx, "commit error", zap.Error(err))
+		return web.InternalServerError{}
+	}
+
+	return nil
+}

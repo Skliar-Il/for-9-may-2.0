@@ -103,8 +103,6 @@ definitions:
         type: string
       id:
         type: string
-      link:
-        type: string
       medals:
         items:
           $ref: '#/definitions/dto.MedalDTO'
@@ -130,6 +128,8 @@ definitions:
     properties:
       id:
         type: integer
+      is_main:
+        type: boolean
       link:
         type: string
     type: object
@@ -214,6 +214,28 @@ info:
 paths:
   /medal:
     get:
+      responses: {}
+      tags:
+      - Medal
+    put:
+      parameters:
+      - description: medal
+        in: body
+        name: medal
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MedalDTO'
+      responses: {}
+      tags:
+      - Medal
+  /medal/{id}:
+    delete:
+      parameters:
+      - description: medal id
+        in: path
+        name: id
+        required: true
+        type: integer
       responses: {}
       tags:
       - Medal

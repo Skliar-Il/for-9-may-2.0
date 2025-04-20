@@ -69,5 +69,7 @@ func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.Servi
 	{
 		medalGroup.POST("/create", medalController.CreateMedal)
 		medalGroup.GET("", medalController.GetMedals)
+		medalGroup.DELETE("/:id", medalController.DeleteMedal)
+		medalGroup.PUT("", medalController.UpdateMedal)
 	}
 }

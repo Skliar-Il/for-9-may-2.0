@@ -21,6 +21,23 @@ const docTemplate = `{
                     "Medal"
                 ],
                 "responses": {}
+            },
+            "put": {
+                "tags": [
+                    "Medal"
+                ],
+                "parameters": [
+                    {
+                        "description": "medal",
+                        "name": "medal",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MedalDTO"
+                        }
+                    }
+                ],
+                "responses": {}
             }
         },
         "/medal/create": {
@@ -37,6 +54,23 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.CreateMedalDTO"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/medal/{id}": {
+            "delete": {
+                "tags": [
+                    "Medal"
+                ],
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "medal id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -662,9 +696,6 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "link": {
-                    "type": "string"
-                },
                 "medals": {
                     "type": "array",
                     "items": {
@@ -702,6 +733,9 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "integer"
+                },
+                "is_main": {
+                    "type": "boolean"
                 },
                 "link": {
                     "type": "string"

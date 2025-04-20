@@ -14,6 +14,8 @@ type MedalRepositoryInterface interface {
 	GetMedals(ctx context.Context, tx pgx.Tx) ([]dto.MedalDTO, error)
 	CreateMedal(ctx context.Context, tx pgx.Tx, medal *dto.CreateMedalDTO) (int, error)
 	DeleteMedalPersonByID(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
+	UpdateMedal(ctx context.Context, tx pgx.Tx, medal *dto.MedalDTO) error
+	DeleteMedal(ctx context.Context, tx pgx.Tx, medalId int) error
 }
 type MedalRepository struct{}
 
@@ -95,8 +97,27 @@ func (MedalRepository) DeleteMedalPersonByID(ctx context.Context, tx pgx.Tx, id 
 	`
 
 	_, err := tx.Exec(ctx, query, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
+}
+
+func (MedalRepository) DeleteMedal(ctx context.Context, tx pgx.Tx, medalId int) error {
+	query := `
+	DELETE FROM medal
+	WHERE id = $1
+	`
+
+	_, err := tx.Exec(ctx, query, medalId)
+	return err
+}
+
+func (MedalRepository) UpdateMedal(ctx context.Context, tx pgx.Tx, medal *dto.MedalDTO) error {
+	query := `
+	UPDATE medal
+	SET
+		name = $1,
+		photo_link = $2
+	`
+
+	_, err := tx.Exec(ctx, query, medal.Name, medal.ImageUrl)
+	return err
 }
