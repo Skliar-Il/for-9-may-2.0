@@ -106,7 +106,9 @@ func (g *GalleryService) UploadPostFile(ctx *gin.Context, file *multipart.FileHe
 		return "", web.InternalServerError{}
 	}
 
-	if err := g.GalleryRepository.UpdateLink(ctx, tx, postID, savePath); err != nil {
+	databaseFilePath := fmt.Sprintf("/files/%s.jpg", fileName.String())
+
+	if err := g.GalleryRepository.UpdateLink(ctx, tx, postID, databaseFilePath); err != nil {
 		localLogger.Error(ctx, "save file error", zap.Error(err))
 		return "", nil
 	}

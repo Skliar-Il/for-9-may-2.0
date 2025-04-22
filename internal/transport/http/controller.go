@@ -4,6 +4,7 @@ import (
 	_ "for9may/docs"
 	"for9may/internal/config"
 	"for9may/internal/repository"
+	"for9may/internal/secure"
 	"for9may/internal/service"
 	jwtservice "for9may/pkg/jwt"
 	"for9may/pkg/logger"
@@ -13,12 +14,21 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+var checkLink = map[string][]string{
+	"/person/validate/:id":    {"PATCH"},
+	"/person/:id":             {"DELETE"},
+	"/person":                 {"PUT"},
+	"/person/count":           {"GET"},
+	"/person/file/delete/:id": {"DELETE"},
+}
+
 func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.ServiceJWT, dbPool *pgxpool.Pool) {
 	mainLogger := logger.New()
 
+	engine.MaxMultipartMemory = 10 << 20
 	engine.Use(logger.Middleware(mainLogger))
 	engine.Use(gin.Recovery())
-	engine.MaxMultipartMemory = 100 << 20
+	engine.Use(secure.Middleware(checkLink, jwtService, cfg.Admin))
 	engine.Static("/files", "./upload")
 
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

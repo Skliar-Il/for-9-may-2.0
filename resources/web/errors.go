@@ -60,3 +60,10 @@ type UnAuthorizedError struct {
 func (UnAuthorizedError) Error() string {
 	return "unauthorized error"
 }
+
+type ForbiddenError struct {
+}
+
+func (ForbiddenError) Error() string {
+	return "forbidden error"
+}
