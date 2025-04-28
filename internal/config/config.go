@@ -22,12 +22,11 @@ type PhotoConfig struct {
 }
 
 type Config struct {
-	Server   ServerCfg       `env:"SERVER"`
-	Admin    AdminCfg        `env:"ADMIN"`
-	DataBase database.Config `env:"POSTGRES"`
-	Redis    redis.Config    `env:"REDIS"`
-	//Storage     sdk.Config      `env:"AWS"`
-	PhotoConfig PhotoConfig `env:"PHOTO"`
+	Server      ServerCfg       `env:"SERVER"`
+	Admin       AdminCfg        `env:"ADMIN"`
+	DataBase    database.Config `env:"POSTGRES"`
+	Redis       redis.Config    `env:"REDIS"`
+	PhotoConfig PhotoConfig     `env:"PHOTO"`
 }
 
 func New() (*Config, error) {

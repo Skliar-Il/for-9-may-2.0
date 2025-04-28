@@ -15,11 +15,19 @@ import (
 )
 
 var checkLink = map[string][]string{
-	"/person/validate/:id":    {"PATCH"},
-	"/person/:id":             {"DELETE"},
-	"/person":                 {"PUT"},
-	"/person/count":           {"GET"},
-	"/person/file/delete/:id": {"DELETE"},
+	"/api/person/validate/:id":    {"PATCH"},
+	"/api/person/:id":             {"DELETE"},
+	"/api/person":                 {"PUT"},
+	"/api/person/count":           {"GET"},
+	"/api/person/file/delete/:id": {"DELETE"},
+
+	"/api/medal/create": {"POST"},
+	"/api/medal":        {"PUT"},
+	"/api/medal/:id":    {"DELETE"},
+
+	"/api/gallery":             {"POST"},
+	"/api/gallery/file/upload": {"POST"},
+	"/api/gallery/:id":         {"DELETE"},
 }
 
 func Define(engine *gin.Engine, cfg *config.Config, jwtService *jwtservice.ServiceJWT, dbPool *pgxpool.Pool) {

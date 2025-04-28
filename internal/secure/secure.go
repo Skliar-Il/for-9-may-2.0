@@ -22,7 +22,7 @@ func Middleware(checkLink map[string][]string, jwtService *jwtservice.ServiceJWT
 			return
 		}
 
-		if slices.Contains(checkMethods, method) {
+		if !slices.Contains(checkMethods, method) {
 			ctx.Next()
 			return
 		}
@@ -42,7 +42,7 @@ func Middleware(checkLink map[string][]string, jwtService *jwtservice.ServiceJWT
 		claims, err := jwtService.DecodeKey(token)
 		if err != nil {
 			if errors.Is(jwtservice.InvalidTokenError, err) {
-				ctx.AbortWithStatusJSON(http.StatusUnauthorized, web.ErrorResponse{Message: web.TokenInvalidErrorString})
+				ctx.AbortWithStatusJSON(http.StatusUnauthorized, web.ForbiddenError{})
 				return
 			} else {
 				return
