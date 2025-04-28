@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"net/http"
 	"time"
 )
 
@@ -81,6 +82,7 @@ func (j *ServiceJWT) SetCookieRefresh(c *gin.Context, token string) {
 		false,
 		true,
 	)
+	c.SetSameSite(http.SameSiteLaxMode)
 }
 
 func (j *ServiceJWT) SetCookieAccess(c *gin.Context, token string) {
@@ -93,4 +95,5 @@ func (j *ServiceJWT) SetCookieAccess(c *gin.Context, token string) {
 		false,
 		false,
 	)
+	c.SetSameSite(http.SameSiteLaxMode)
 }
