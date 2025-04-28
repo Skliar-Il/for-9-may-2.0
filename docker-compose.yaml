@@ -22,7 +22,7 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 1s
-      timeout: 1s
+      timeout: 60s
       retries: 60
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -65,7 +65,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - shared_volume:/upload
+      - shared_volume:/app/upload
 
   for-9-may-app2:
     build:
@@ -90,7 +90,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - shared_volume:/upload
+      - shared_volume:/app/upload
 
   for-9-may-app3:
     build:
@@ -115,7 +115,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - shared_volume:/upload
+      - shared_volume:/app/upload
 
   nginx:
     image: nginx:1.27.4-alpine
@@ -125,7 +125,6 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - shared_volume:/shared_volume
     networks:
       - go-app-network
     depends_on:

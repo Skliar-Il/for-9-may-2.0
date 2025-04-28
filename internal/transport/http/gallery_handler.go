@@ -129,6 +129,10 @@ func (g *GalleryHandler) UploadPostFile(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, web.InternalServerError{})
 		return
 	}
+	if file.Size == 0 {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, web.ValidationError{Message: "file is empty"})
+		return
+	}
 	link, err := g.GalleryService.UploadPostFile(c, file, postID)
 
 	c.JSON(http.StatusCreated, gin.H{"link": link})
