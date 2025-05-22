@@ -8,8 +8,10 @@ import (
 	httpserver "for9may/internal/transport/http"
 	"for9may/pkg/database"
 	jwtservice "for9may/pkg/jwt"
+	"for9may/pkg/trace"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"log"
 	"net/http"
 	"time"
@@ -74,6 +76,12 @@ func NewApp() *http.Server {
 	if err != nil {
 		log.Fatalf(startDataBaseErrorString, err)
 	}
+
+	_, err = trace.InitTracer(fmt.Sprintf("http://%s:%s/api/traces", cfg.Trace.Host, cfg.Trace.Port), "Polk sirius")
+	if err != nil {
+		log.Fatalf("init tracer error: %v", err)
+	}
+	serverEngine.Use(otelgin.Middleware("polk-sirius"))
 
 	httpserver.Define(serverEngine, cfg, serviceJwt, dbPool)
 

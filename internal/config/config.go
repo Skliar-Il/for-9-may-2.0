@@ -3,6 +3,7 @@ package config
 import (
 	"for9may/pkg/database"
 	"for9may/pkg/redis"
+	"for9may/pkg/trace"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 )
@@ -27,6 +28,7 @@ type Config struct {
 	DataBase    database.Config `env:"POSTGRES"`
 	Redis       redis.Config    `env:"REDIS"`
 	PhotoConfig PhotoConfig     `env:"PHOTO"`
+	Trace       trace.Config    `env:"JAEGER"`
 }
 
 func New() (*Config, error) {

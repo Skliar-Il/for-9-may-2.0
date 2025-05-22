@@ -42,6 +42,19 @@ services:
     volumes:
       - redis-data:/data
 
+  jaeger:
+    container_name: "for-9-may-jaeger"
+    networks:
+      - go-app-network
+    image: jaegertracing/jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "8888:8888"
+      - "8889:8889"
+      - "4317:4317"
+      - "4318:4318"
+
   for-9-may-app1:
     build:
       context: .
@@ -55,6 +68,8 @@ services:
       REDIS_HOST: redis
       POSTGRES_PORT: 5432
       REDIS_PORT: 6379
+      JAEGER_PORT: 14268
+      JAEGER_HOST: jaeger
     ports:
       - "8081:8081"
     networks:
@@ -80,6 +95,8 @@ services:
       REDIS_HOST: redis
       POSTGRES_PORT: 5432
       REDIS_PORT: 6379
+      JAEGER_PORT: 14268
+      JAEGER_HOST: jaeger
     ports:
       - "8082:8082"
     networks:
@@ -105,6 +122,8 @@ services:
       REDIS_HOST: redis
       POSTGRES_PORT: 5432
       REDIS_PORT: 6379
+      JAEGER_PORT: 14268
+      JAEGER_HOST: jaeger
     ports:
       - "8083:8083"
     networks:

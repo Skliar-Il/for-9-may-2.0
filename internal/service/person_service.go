@@ -314,6 +314,12 @@ func (p *PersonService) UpdatePerson(ctx *gin.Context, person *dto.UpdatePersonD
 		return web.InternalServerError{}
 	}
 	if err := p.MedalRepository.CreateMedalPerson(ctx, tx, person.ID, person.Medals); err != nil {
+		pgError := database.ValidatePgxError(err)
+		if pgError != nil {
+			if pgError.Type == database.TypeForeignKey {
+				return web.BadRequestError{Message: "invalid medal id"}
+			}
+		}
 		localLogger.Error(ctx, "database create medal person error", zap.Error(err))
 		return web.InternalServerError{}
 	}

@@ -64,12 +64,11 @@ CREATE TABLE IF NOT EXISTS gallery (
 CREATE OR REPLACE FUNCTION check_main_photo_before_insert()
     RETURNS TRIGGER AS $$
 BEGIN
-    -- Если пытаемся добавить НЕ главное фото, но у пользователя ещё нет главного фото
     IF NEW.main_status = FALSE AND NOT EXISTS (
         SELECT 1 FROM person_photo
         WHERE person_id = NEW.person_id AND main_status = TRUE
     ) THEN
-        RAISE EXCEPTION 'Cannot add non-main photo: person must have at least one main photo first';
+        RAISE EXCEPTION 'Cannot add non-main photo, person must have at least one main photo first';
     END IF;
 
     RETURN NEW;
